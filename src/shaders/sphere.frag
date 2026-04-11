@@ -2,7 +2,9 @@ precision highp float;
 
 uniform sampler2D uTrailMap;
 uniform vec3 uBaseColor;
-uniform vec3 uTrailColor;
+uniform vec3 uTrailColorCore;  // center (high intensity)
+uniform vec3 uTrailColorMid;   // mid intensity
+uniform vec3 uTrailColorEdge;  // edges/tail (low intensity)
 
 varying vec2 vUv;
 varying vec3 vNormal;
@@ -11,6 +13,15 @@ varying vec3 vWorldPosition;
 void main() {
   float trail = texture2D(uTrailMap, vUv).r;
 
+  // --- 3-color gradient based on trail intensity ---
+  // trail 1.0 = core (dark), 0.5 = mid, ~0.0 = edge (bright/yellow)
+  vec3 trailColor;
+  if(trail > 0.5) {
+    trailColor = mix(uTrailColorMid, uTrailColorCore, (trail - 0.5) * 2.0);
+  } else {
+    trailColor = mix(uTrailColorEdge, uTrailColorMid, trail * 2.0);
+  }
+
   // simple directional + ambient lighting
   vec3 lightDir = normalize(vec3(3.0, 10.0, 7.0));
   float NdL = max(dot(vNormal, lightDir), 0.0);
@@ -18,7 +29,7 @@ void main() {
   float lighting = ambient + (1.0 - ambient) * NdL;
 
   vec3 base = uBaseColor * lighting;
-  vec3 color = mix(base, uTrailColor, trail);
+  vec3 color = mix(base, trailColor, trail);
 
   // --- Color correction ---
   #include <tonemapping_fragment>

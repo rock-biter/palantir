@@ -21,8 +21,10 @@ const config = {
 	curlScale: 2.0,
 	curlSpeed: 0.4,
 	curlStrength: 0.0035,
-	trailColor: '#383634',
-	baseColor: '#fb5e3a',
+	trailColorCore: '#07ff00',
+	trailColorMid: '#8a0000',
+	trailColorEdge: '#1a7fff',
+	baseColor: '#ff2f00',
 }
 
 const pane = new Pane()
@@ -48,7 +50,9 @@ trailFolder.addBinding(config, 'curlStrength', {
 	max: 0.02,
 	step: 0.0005,
 })
-trailFolder.addBinding(config, 'trailColor')
+trailFolder.addBinding(config, 'trailColorCore')
+trailFolder.addBinding(config, 'trailColorMid')
+trailFolder.addBinding(config, 'trailColorEdge')
 trailFolder.addBinding(config, 'baseColor')
 
 /**
@@ -143,7 +147,9 @@ const sphereMaterial = new THREE.ShaderMaterial({
 	uniforms: {
 		uTrailMap: { value: rtA.texture },
 		uBaseColor: { value: new THREE.Color(config.baseColor) },
-		uTrailColor: { value: new THREE.Color(config.trailColor) },
+		uTrailColorCore: { value: new THREE.Color(config.trailColorCore) },
+		uTrailColorMid: { value: new THREE.Color(config.trailColorMid) },
+		uTrailColorEdge: { value: new THREE.Color(config.trailColorEdge) },
 	},
 })
 const sphere = new THREE.Mesh(sphereGeometry, sphereMaterial)
@@ -190,7 +196,9 @@ pane.on('change', () => {
 	diffusionMaterial.uniforms.uCurlSpeed.value = config.curlSpeed
 	diffusionMaterial.uniforms.uCurlStrength.value = config.curlStrength
 	sphereMaterial.uniforms.uBaseColor.value.set(config.baseColor)
-	sphereMaterial.uniforms.uTrailColor.value.set(config.trailColor)
+	sphereMaterial.uniforms.uTrailColorCore.value.set(config.trailColorCore)
+	sphereMaterial.uniforms.uTrailColorMid.value.set(config.trailColorMid)
+	sphereMaterial.uniforms.uTrailColorEdge.value.set(config.trailColorEdge)
 })
 
 /**
