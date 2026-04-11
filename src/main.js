@@ -67,8 +67,6 @@ const sizes = {
 const renderer = new THREE.WebGLRenderer({
 	antialias: window.devicePixelRatio < 2,
 })
-renderer.toneMapping = THREE.ACESFilmicToneMapping
-renderer.toneMappingExposure = 1.0
 document.body.appendChild(renderer.domElement)
 
 /**
