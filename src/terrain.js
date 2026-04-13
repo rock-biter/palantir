@@ -4,6 +4,20 @@ import { config } from './config.js'
 import terrainVert from './shaders/terrain.vert'
 import terrainFrag from './shaders/terrain.frag'
 
+// --- Load terrain textures ---
+const textureLoader = new THREE.TextureLoader()
+
+function loadTex(path) {
+	const tex = textureLoader.load(path)
+	tex.wrapS = THREE.RepeatWrapping
+	tex.wrapT = THREE.RepeatWrapping
+	return tex
+}
+
+const diffuseMap = loadTex('/textures/coast-sand/coast_sand_05_diff_1k.jpg')
+const normalMap = loadTex('/textures/coast-sand/coast_sand_05_nor_gl_1k.jpg')
+const roughMap = loadTex('/textures/coast-sand/coast_sand_05_rough_1k.jpg')
+
 // --- CPU-side FBM noise ---
 
 // Simple 2D gradient noise (hash-based)
@@ -156,6 +170,7 @@ export function createTerrain() {
 		fragmentShader: terrainFrag,
 		transparent: true,
 		side: THREE.DoubleSide,
+		// wireframe: true,
 		uniforms: {
 			uColor: { value: new THREE.Color(config.terrainColor) },
 			uTerrainSize: { value: config.terrainSize },
@@ -163,6 +178,16 @@ export function createTerrain() {
 			uFalloffEnd: { value: config.terrainFalloffEnd },
 			uFalloffNoiseScale: { value: config.terrainFalloffNoiseScale },
 			uFalloffNoiseStrength: { value: config.terrainFalloffNoiseStrength },
+			uDiffuseMap: { value: diffuseMap },
+			uNormalMap: { value: normalMap },
+			uRoughMap: { value: roughMap },
+			uTexScale: { value: config.terrainTexScale },
+			uTexOffset: {
+				value: new THREE.Vector2(
+					config.terrainTexOffsetX,
+					config.terrainTexOffsetY,
+				),
+			},
 		},
 	})
 
@@ -173,7 +198,7 @@ export function createTerrain() {
 	}
 
 	terrainMesh = new THREE.Mesh(geometry, material)
-	terrainMesh.position.y = -3
+	terrainMesh.position.y = config.terrainY
 
 	return terrainMesh
 }

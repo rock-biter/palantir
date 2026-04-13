@@ -6,10 +6,17 @@ uniform float uFalloffStart;
 uniform float uFalloffEnd;
 uniform float uFalloffNoiseScale;
 uniform float uFalloffNoiseStrength;
+uniform sampler2D uDiffuseMap;
+uniform sampler2D uNormalMap;
+uniform sampler2D uRoughMap;
+uniform float uTexScale;
+uniform vec2 uTexOffset;
 
 varying vec2 vUv;
 varying vec3 vWorldPosition;
 varying vec3 vNormal;
+varying vec3 vTangent;
+varying vec3 vBitangent;
 
 // --- Simple 2D hash noise for falloff edge deformation ---
 vec2 hash2(vec2 p) {
@@ -51,13 +58,23 @@ void main() {
   if(alpha < 0.001)
     discard;
 
+  // --- Texture sampling (tiled) ---
+  vec2 tiledUV = vUv * uTexScale + uTexOffset;
+  vec3 diffuseTex = texture2D(uDiffuseMap, tiledUV).rgb;
+  float roughness = texture2D(uRoughMap, tiledUV).r;
+
+  // --- Normal mapping (TBN) ---
+  vec3 mapNormal = texture2D(uNormalMap, tiledUV).rgb * 2.0 - 1.0;
+  mat3 TBN = mat3(normalize(vTangent), normalize(vBitangent), normalize(vNormal));
+  vec3 N = normalize(TBN * mapNormal);
+
   // Simple directional + ambient lighting
   vec3 lightDir = normalize(vec3(3.0, 10.0, 7.0));
-  float NdL = max(dot(vNormal, lightDir), 0.0);
+  float NdL = max(dot(N, lightDir), 0.0);
   float ambient = 0.35;
   float lighting = ambient + (1.0 - ambient) * NdL;
 
-  vec3 color = uColor * lighting;
+  vec3 color = uColor * diffuseTex * lighting;
 
   gl_FragColor = vec4(color, alpha);
 

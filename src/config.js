@@ -14,8 +14,12 @@ export const config = {
 	trailColorEdge: '#d80000',
 	baseColor: '#575250',
 
+	// Sphere
+	sphereRadius: 2.0,
+
 	// Terrain
-	terrainSize: 25,
+	terrainY: -1.9,
+	terrainSize: 30,
 	terrainSegments: 100,
 	terrainHeight: 3.5,
 	terrainOctaves: 6,
@@ -27,6 +31,9 @@ export const config = {
 	terrainFalloffEnd: 0.95,
 	terrainFalloffNoiseScale: 3.0,
 	terrainFalloffNoiseStrength: 0.27,
-	terrainNoiseOffsetX: 0.0,
-	terrainNoiseOffsetY: 0.0,
+	terrainNoiseOffsetX: 27.5,
+	terrainNoiseOffsetY: -2.7,
+	terrainTexScale: 3.0,
+	terrainTexOffsetX: 0.0,
+	terrainTexOffsetY: 0.0,
 }

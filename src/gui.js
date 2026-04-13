@@ -1,7 +1,7 @@
 import { Pane } from 'tweakpane'
 import { config } from './config.js'
 import { diffusionMaterial } from './trail.js'
-import { sphereMaterial } from './sphere.js'
+import { sphereMaterial, rebuildSphere } from './sphere.js'
 
 export const pane = new Pane()
 
@@ -33,10 +33,28 @@ trailFolder.addBinding(config, 'trailColorMid')
 trailFolder.addBinding(config, 'trailColorEdge')
 trailFolder.addBinding(config, 'baseColor')
 
+// --- Sphere folder ---
+const sphereFolder = pane.addFolder({ title: 'Sphere' })
+sphereFolder.addBinding(config, 'sphereRadius', {
+	label: 'radius',
+	min: 0.5,
+	max: 5.0,
+	step: 0.1,
+})
+sphereFolder.on('change', () => {
+	rebuildSphere()
+})
+
 // --- Terrain folder ---
 let onTerrainChange = null
 
 const terrainFolder = pane.addFolder({ title: 'Terrain' })
+terrainFolder.addBinding(config, 'terrainY', {
+	label: 'position Y',
+	min: -10.0,
+	max: 10.0,
+	step: 0.1,
+})
 terrainFolder.addBinding(config, 'terrainHeight', {
 	label: 'height',
 	min: 0.0,
@@ -84,13 +102,13 @@ terrainFolder.addBinding(config, 'terrainNoiseOffsetX', {
 	label: 'noise offset X',
 	min: -100.0,
 	max: 100.0,
-	step: 0.5,
+	step: 0.01,
 })
 terrainFolder.addBinding(config, 'terrainNoiseOffsetY', {
 	label: 'noise offset Y',
 	min: -100.0,
 	max: 100.0,
-	step: 0.5,
+	step: 0.01,
 })
 terrainFolder.addBinding(config, 'terrainFalloffStart', {
 	label: 'falloff start',
@@ -115,6 +133,24 @@ terrainFolder.addBinding(config, 'terrainFalloffNoiseStrength', {
 	min: 0.0,
 	max: 0.5,
 	step: 0.01,
+})
+terrainFolder.addBinding(config, 'terrainTexScale', {
+	label: 'tex scale',
+	min: 0.5,
+	max: 40.0,
+	step: 0.5,
+})
+terrainFolder.addBinding(config, 'terrainTexOffsetX', {
+	label: 'tex offset X',
+	min: -10.0,
+	max: 10.0,
+	step: 0.1,
+})
+terrainFolder.addBinding(config, 'terrainTexOffsetY', {
+	label: 'tex offset Y',
+	min: -10.0,
+	max: 10.0,
+	step: 0.1,
 })
 
 export function setOnTerrainChange(cb) {

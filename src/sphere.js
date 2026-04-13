@@ -4,9 +4,6 @@ import { config } from './config.js'
 import sphereVert from './shaders/sphere.vert'
 import sphereFrag from './shaders/sphere.frag'
 
-export const SPHERE_RADIUS = 2
-
-const sphereGeometry = new THREE.SphereGeometry(SPHERE_RADIUS, 128, 128)
 export const sphereMaterial = new THREE.ShaderMaterial({
 	vertexShader: sphereVert,
 	fragmentShader: sphereFrag,
@@ -19,4 +16,13 @@ export const sphereMaterial = new THREE.ShaderMaterial({
 	},
 })
 
-export const sphere = new THREE.Mesh(sphereGeometry, sphereMaterial)
+export let sphere = new THREE.Mesh(
+	new THREE.SphereGeometry(config.sphereRadius, 128, 128),
+	sphereMaterial,
+)
+
+export function rebuildSphere() {
+	const oldGeo = sphere.geometry
+	sphere.geometry = new THREE.SphereGeometry(config.sphereRadius, 128, 128)
+	oldGeo.dispose()
+}
