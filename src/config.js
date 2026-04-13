@@ -1,0 +1,32 @@
+export const config = {
+	// Trail
+	brushSize: 0.2,
+	brushStrength: 0.5,
+	diffusion: 0.13,
+	decay: 0.96,
+	waveSpeed: 0.4,
+	waveDamping: 0.13,
+	curlScale: 2.0,
+	curlSpeed: 0.4,
+	curlStrength: 0.0035,
+	trailColorCore: '#ff9c21',
+	trailColorMid: '#ff4606',
+	trailColorEdge: '#d80000',
+	baseColor: '#575250',
+
+	// Terrain
+	terrainSize: 25,
+	terrainSegments: 100,
+	terrainHeight: 3.5,
+	terrainOctaves: 6,
+	terrainFrequency: 0.065,
+	terrainLacunarity: 1.8,
+	terrainGain: 0.5,
+	terrainColor: '#3a3a3a',
+	terrainFalloffStart: 0.75,
+	terrainFalloffEnd: 0.95,
+	terrainFalloffNoiseScale: 3.0,
+	terrainFalloffNoiseStrength: 0.27,
+	terrainNoiseOffsetX: 0.0,
+	terrainNoiseOffsetY: 0.0,
+}
