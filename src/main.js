@@ -21,10 +21,10 @@ const config = {
 	curlScale: 2.0,
 	curlSpeed: 0.4,
 	curlStrength: 0.0035,
-	trailColorCore: '#07ff00', //#ff9c21
-	trailColorMid: '#8a0000', //#ff4606
-	trailColorEdge: '#1a7fff', //#d80000
-	baseColor: '#ff2f00', //#575250
+	trailColorCore: '#ff9c21', //#ff9c21
+	trailColorMid: '#ff4606', //#ff4606
+	trailColorEdge: '#d80000', //#d80000
+	baseColor: '#575250', //#575250
 }
 
 const pane = new Pane()
