@@ -16,7 +16,7 @@ const config = {
 	brushStrength: 0.5,
 	diffusion: 0.13,
 	decay: 0.96,
-	waveSpeed: 0.6,
+	waveSpeed: 0.4,
 	waveDamping: 0.13,
 	curlScale: 2.0,
 	curlSpeed: 0.4,
