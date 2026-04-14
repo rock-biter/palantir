@@ -18,6 +18,7 @@ uniform vec3 uTrailColorEdge;
 uniform float uTrailMaxDist;
 uniform float uTrailFalloffCurve;
 uniform float uTrailBlur;
+uniform float uChromaShift;
 
 varying vec2 vUv;
 varying vec3 vWorldPosition;
@@ -98,10 +99,27 @@ void main() {
   // Sample trail with mipmap blur (blend two LOD levels for soft projection)
   float lod0 = uTrailBlur;
   float lod1 = uTrailBlur + 2.0;
-  float trailSharp = textureLod(uTrailMap, trailUV, 0.0).r;
-  float trailBlurry = textureLod(uTrailMap, trailUV, uTrailBlur + 2.0).r;
   float mixBlur = smoothstep(0.0, uTrailMaxDist, distToCenter);
-  float trail = mix(trailSharp, trailBlurry, mixBlur);
+
+  // Chromatic aberration: offset phi for R and B channels
+  float phiOffsetR = phi + uChromaShift;
+  float phiOffsetB = phi - uChromaShift;
+  vec2 trailUV_R = vec2(phiOffsetR / (2.0 * 3.14159265) + 0.5, 1.0 - theta / 3.14159265);
+  vec2 trailUV_B = vec2(phiOffsetB / (2.0 * 3.14159265) + 0.5, 1.0 - theta / 3.14159265);
+
+  float trailR_sharp = textureLod(uTrailMap, trailUV_R, 0.0).r;
+  float trailR_blur = textureLod(uTrailMap, trailUV_R, lod1).r;
+  float trailR = mix(trailR_sharp, trailR_blur, mixBlur);
+
+  float trailG_sharp = textureLod(uTrailMap, trailUV, 0.0).r;
+  float trailG_blur = textureLod(uTrailMap, trailUV, lod1).r;
+  float trailG = mix(trailG_sharp, trailG_blur, mixBlur);
+
+  float trailB_sharp = textureLod(uTrailMap, trailUV_B, 0.0).r;
+  float trailB_blur = textureLod(uTrailMap, trailUV_B, lod1).r;
+  float trailB = mix(trailB_sharp, trailB_blur, mixBlur);
+
+  float trail = trailG; // use green channel as main intensity
 
   // 3-color gradient based on trail intensity (same as sphere)
   vec3 trailColor = pow(uTrailColorMid, vec3(2.2));
@@ -119,7 +137,9 @@ void main() {
   vec3 toCenter = normalize(-vWorldPosition);
   float trailIntensity = max(dot(N, toCenter), 0.0);
 
-  color += trailColor * trail * trailIntensity * distFactor * 2.;
+  // Apply chromatic aberration per channel
+  vec3 trailRGB = vec3(trailR, trailG, trailB);
+  color += trailColor * trailRGB * trailIntensity * distFactor * 2.;
 
   gl_FragColor = vec4(color, alpha);
 

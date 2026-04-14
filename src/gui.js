@@ -177,6 +177,12 @@ trailLightFolder.addBinding(config, 'trailBlur', {
 	max: 8.0,
 	step: 0.1,
 })
+trailLightFolder.addBinding(config, 'chromaShift', {
+	label: 'chroma shift',
+	min: 0.0,
+	max: 0.3,
+	step: 0.005,
+})
 
 trailLightFolder.on('change', () => {
 	const terrain = getTerrainMesh()
@@ -185,6 +191,7 @@ trailLightFolder.on('change', () => {
 		terrain.material.uniforms.uTrailFalloffCurve.value =
 			config.trailFalloffCurve
 		terrain.material.uniforms.uTrailBlur.value = config.trailBlur
+		terrain.material.uniforms.uChromaShift.value = config.chromaShift
 	}
 })
 
