@@ -76,6 +76,12 @@ function tic() {
 	)
 	sphereMaterial.uniforms.uTrailMap.value = trailTexture
 
+	// Project trail onto terrain
+	const terrain = getTerrainMesh()
+	if (terrain) {
+		terrain.material.uniforms.uTrailMap.value = trailTexture
+	}
+
 	renderer.render(scene, camera)
 
 	requestAnimationFrame(tic)

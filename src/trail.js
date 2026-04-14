@@ -6,10 +6,11 @@ import diffusionFrag from './shaders/diffusion.frag'
 
 const SIM_RES = 512
 const rtOptions = {
-	minFilter: THREE.LinearFilter,
+	minFilter: THREE.LinearMipmapLinearFilter,
 	magFilter: THREE.LinearFilter,
 	format: THREE.RGBAFormat,
 	type: THREE.FloatType,
+	generateMipmaps: true,
 }
 const rtA = new THREE.WebGLRenderTarget(SIM_RES, SIM_RES, rtOptions)
 const rtB = new THREE.WebGLRenderTarget(SIM_RES, SIM_RES, rtOptions)
@@ -52,6 +53,15 @@ export function updateTrail(renderer, hitPointNormalized, isHitting, time) {
 	renderer.setRenderTarget(currentRT)
 	renderer.render(quadScene, quadCamera)
 	renderer.setRenderTarget(null)
+
+	// Manually generate mipmaps for LOD sampling in terrain shader
+	const gl = renderer.getContext()
+	const texProps = renderer.properties.get(currentRT.texture)
+	if (texProps.__webglTexture) {
+		gl.bindTexture(gl.TEXTURE_2D, texProps.__webglTexture)
+		gl.generateMipmap(gl.TEXTURE_2D)
+		gl.bindTexture(gl.TEXTURE_2D, null)
+	}
 
 	const texture = currentRT.texture
 

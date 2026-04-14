@@ -11,6 +11,13 @@ uniform sampler2D uNormalMap;
 uniform sampler2D uRoughMap;
 uniform float uTexScale;
 uniform vec2 uTexOffset;
+uniform sampler2D uTrailMap;
+uniform vec3 uTrailColorCore;
+uniform vec3 uTrailColorMid;
+uniform vec3 uTrailColorEdge;
+uniform float uTrailMaxDist;
+uniform float uTrailFalloffCurve;
+uniform float uTrailBlur;
 
 varying vec2 vUv;
 varying vec3 vWorldPosition;
@@ -75,6 +82,44 @@ void main() {
   float lighting = ambient + (1.0 - ambient) * NdL * 2.;
 
   vec3 color = uColor * diffuseTex * lighting;
+
+  // --- Trail texture projection from sphere center ---
+  vec3 projDir = normalize(vWorldPosition); // direction from scene center to terrain point
+  // Convert to spherical UVs matching Three.js SphereGeometry mapping
+  float theta = acos(clamp(projDir.y, -1.0, 1.0));
+  float phi = atan(-projDir.z, projDir.x);
+  vec2 trailUV = vec2(phi / (2.0 * 3.14159265) + 0.5, 1.0 - theta / 3.14159265);
+
+  // Distance-based falloff
+  float distToCenter = length(vWorldPosition);
+  float distFactor = 1.0 - clamp(distToCenter / uTrailMaxDist, 0.0, 1.0);
+  distFactor = pow(distFactor, uTrailFalloffCurve);
+
+  // Sample trail with mipmap blur (blend two LOD levels for soft projection)
+  float lod0 = uTrailBlur;
+  float lod1 = uTrailBlur + 2.0;
+  float trailSharp = textureLod(uTrailMap, trailUV, 0.0).r;
+  float trailBlurry = textureLod(uTrailMap, trailUV, uTrailBlur + 2.0).r;
+  float mixBlur = smoothstep(0.0, uTrailMaxDist, distToCenter);
+  float trail = mix(trailSharp, trailBlurry, mixBlur);
+
+  // 3-color gradient based on trail intensity (same as sphere)
+  vec3 trailColor = pow(uTrailColorMid, vec3(2.2));
+  // if(trail > 0.5) {
+  //   trailColor = mix(uTrailColorMid, uTrailColorCore, (trail - 0.5) * 2.0);
+  // } else {
+  //   trailColor = mix(uTrailColorEdge, uTrailColorMid, trail * 2.0);
+  // }
+
+  trailColor = pow(trailColor, vec3(1. / 2.0));
+  // trailColor = mix(uTrailColorCore, trailColor, smoothstep(0.0, 1.0, trail));
+  // trailColor = mix((trailColor + vec3(0.0, 0.3, 0.1)) * 2., trailColor, pow(1.0 - mixBlur, 10.));
+
+  // Intensity: how much the terrain faces the sphere center
+  vec3 toCenter = normalize(-vWorldPosition);
+  float trailIntensity = max(dot(N, toCenter), 0.0);
+
+  color += trailColor * trail * trailIntensity * distFactor * 2.;
 
   gl_FragColor = vec4(color, alpha);
 

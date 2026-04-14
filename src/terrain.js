@@ -188,6 +188,13 @@ export function createTerrain() {
 					config.terrainTexOffsetY,
 				),
 			},
+			uTrailMap: { value: null },
+			uTrailColorCore: { value: new THREE.Color(config.trailColorCore) },
+			uTrailColorMid: { value: new THREE.Color(config.trailColorMid) },
+			uTrailColorEdge: { value: new THREE.Color(config.trailColorEdge) },
+			uTrailMaxDist: { value: config.trailMaxDist },
+			uTrailFalloffCurve: { value: config.trailFalloffCurve },
+			uTrailBlur: { value: config.trailBlur },
 		},
 	})
 

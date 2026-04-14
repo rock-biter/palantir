@@ -1,6 +1,6 @@
 export const config = {
 	// Trail
-	brushSize: 0.2,
+	brushSize: 0.45,
 	brushStrength: 0.5,
 	diffusion: 0.13,
 	decay: 0.96,
@@ -9,8 +9,8 @@ export const config = {
 	curlScale: 2.0,
 	curlSpeed: 0.4,
 	curlStrength: 0.0035,
-	trailColorCore: '#ff9c21',
-	trailColorMid: '#ff4606',
+	trailColorCore: '#ffd753',
+	trailColorMid: '#ff8300',
 	trailColorEdge: '#d80000',
 	baseColor: '#575250',
 
@@ -36,4 +36,7 @@ export const config = {
 	terrainTexScale: 3.0,
 	terrainTexOffsetX: 0.0,
 	terrainTexOffsetY: 0.0,
+	trailMaxDist: 15.0,
+	trailFalloffCurve: 3.6,
+	trailBlur: 2.0,
 }

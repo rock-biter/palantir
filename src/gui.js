@@ -2,6 +2,7 @@ import { Pane } from 'tweakpane'
 import { config } from './config.js'
 import { diffusionMaterial } from './trail.js'
 import { sphereMaterial, rebuildSphere } from './sphere.js'
+import { getTerrainMesh } from './terrain.js'
 
 export const pane = new Pane()
 
@@ -151,6 +152,37 @@ terrainFolder.addBinding(config, 'terrainTexOffsetY', {
 	min: -10.0,
 	max: 10.0,
 	step: 0.1,
+})
+
+// --- Trail Light folder ---
+const trailLightFolder = pane.addFolder({ title: 'Trail Light' })
+trailLightFolder.addBinding(config, 'trailMaxDist', {
+	label: 'max distance',
+	min: 1.0,
+	max: 50.0,
+	step: 0.5,
+})
+trailLightFolder.addBinding(config, 'trailFalloffCurve', {
+	label: 'falloff curve',
+	min: 0.1,
+	max: 5.0,
+	step: 0.1,
+})
+trailLightFolder.addBinding(config, 'trailBlur', {
+	label: 'blur',
+	min: 0.0,
+	max: 8.0,
+	step: 0.1,
+})
+
+trailLightFolder.on('change', () => {
+	const terrain = getTerrainMesh()
+	if (terrain) {
+		terrain.material.uniforms.uTrailMaxDist.value = config.trailMaxDist
+		terrain.material.uniforms.uTrailFalloffCurve.value =
+			config.trailFalloffCurve
+		terrain.material.uniforms.uTrailBlur.value = config.trailBlur
+	}
 })
 
 export function setOnTerrainChange(cb) {
