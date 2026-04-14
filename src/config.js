@@ -39,7 +39,7 @@ export const config = {
 	trailMaxDist: 15.0,
 	trailFalloffCurve: 3.6,
 	trailBlur: 2.0,
-	chromaShift: 0.05,
+	chromaShift: 0.035,
 
 	// Background Terrain
 	bgTerrainY: -6,

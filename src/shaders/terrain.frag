@@ -139,7 +139,7 @@ void main() {
 
   // Apply chromatic aberration per channel
   vec3 trailRGB = vec3(trailR, trailG, trailB);
-  color += trailColor * trailRGB * trailIntensity * distFactor * 2.;
+  color += trailColor * trailRGB * trailIntensity * distFactor * 6.;
 
   gl_FragColor = vec4(color, alpha);
 
