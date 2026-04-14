@@ -69,10 +69,10 @@ void main() {
   vec3 N = normalize(TBN * mapNormal);
 
   // Simple directional + ambient lighting
-  vec3 lightDir = normalize(vec3(3.0, 10.0, 7.0));
+  vec3 lightDir = normalize(vec3(8.0, 4.0, 2.0));
   float NdL = max(dot(N, lightDir), 0.0);
-  float ambient = 0.35;
-  float lighting = ambient + (1.0 - ambient) * NdL;
+  float ambient = 0.1;
+  float lighting = ambient + (1.0 - ambient) * NdL * 2.;
 
   vec3 color = uColor * diffuseTex * lighting;
 
