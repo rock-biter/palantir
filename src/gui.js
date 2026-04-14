@@ -7,7 +7,7 @@ import { getTerrainMesh } from './terrain.js'
 export const pane = new Pane()
 
 // --- Trail folder ---
-const trailFolder = pane.addFolder({ title: 'Trail' })
+const trailFolder = pane.addFolder({ title: 'Trail', expanded: false })
 trailFolder.addBinding(config, 'brushSize', { min: 0.01, max: 0.5, step: 0.01 })
 trailFolder.addBinding(config, 'brushStrength', {
 	min: 0.1,
@@ -35,7 +35,7 @@ trailFolder.addBinding(config, 'trailColorEdge')
 trailFolder.addBinding(config, 'baseColor')
 
 // --- Sphere folder ---
-const sphereFolder = pane.addFolder({ title: 'Sphere' })
+const sphereFolder = pane.addFolder({ title: 'Sphere', expanded: false })
 sphereFolder.addBinding(config, 'sphereRadius', {
 	label: 'radius',
 	min: 0.5,
@@ -49,7 +49,7 @@ sphereFolder.on('change', () => {
 // --- Terrain folder ---
 let onTerrainChange = null
 
-const terrainFolder = pane.addFolder({ title: 'Terrain' })
+const terrainFolder = pane.addFolder({ title: 'Terrain', expanded: false })
 terrainFolder.addBinding(config, 'terrainY', {
 	label: 'position Y',
 	min: -10.0,
@@ -155,7 +155,7 @@ terrainFolder.addBinding(config, 'terrainTexOffsetY', {
 })
 
 // --- Trail Light folder ---
-const trailLightFolder = pane.addFolder({ title: 'Trail Light' })
+const trailLightFolder = pane.addFolder({ title: 'Trail Light', expanded: false })
 trailLightFolder.addBinding(config, 'trailMaxDist', {
 	label: 'max distance',
 	min: 1.0,
@@ -184,6 +184,57 @@ trailLightFolder.on('change', () => {
 		terrain.material.uniforms.uTrailBlur.value = config.trailBlur
 	}
 })
+
+// --- Radial Blur folder ---
+let radialBlurMaterialRef = null
+
+const radialBlurFolder = pane.addFolder({ title: 'Radial Blur', expanded: false })
+radialBlurFolder.addBinding(config, 'radialBlurSamples', {
+	label: 'samples',
+	min: 1,
+	max: 160,
+	step: 1,
+})
+radialBlurFolder.addBinding(config, 'radialBlurReduce', {
+	label: 'reduce',
+	min: 0.01,
+	max: 1.0,
+	step: 0.01,
+})
+radialBlurFolder.addBinding(config, 'radialBlurStrength', {
+	label: 'strength',
+	min: 0.0,
+	max: 3.0,
+	step: 0.01,
+})
+radialBlurFolder.addBinding(config, 'radialBlurColor', {
+	label: 'color',
+})
+radialBlurFolder.addBinding(config, 'radialBlurColorDistance', {
+	label: 'color distance',
+	min: 0.0,
+	max: 10.0,
+	step: 0.01,
+})
+
+radialBlurFolder.on('change', () => {
+	if (radialBlurMaterialRef) {
+		radialBlurMaterialRef.uniforms.uSamples.value =
+			config.radialBlurSamples
+		radialBlurMaterialRef.uniforms.uReduce.value = config.radialBlurReduce
+		radialBlurMaterialRef.uniforms.uStrength.value =
+			config.radialBlurStrength
+		radialBlurMaterialRef.uniforms.uColor.value.set(
+			config.radialBlurColor,
+		)
+		radialBlurMaterialRef.uniforms.uColorDistance.value =
+			config.radialBlurColorDistance
+	}
+})
+
+export function setRadialBlurMaterial(mat) {
+	radialBlurMaterialRef = mat
+}
 
 export function setOnTerrainChange(cb) {
 	onTerrainChange = cb

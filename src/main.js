@@ -1,12 +1,23 @@
 import './style.css'
 import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
+import {
+	EffectComposer,
+	RenderPass,
+	ShaderPass,
+} from 'postprocessing'
 
 import { scene, renderer, camera, sizes } from './renderer.js'
 import { sphere, sphereMaterial } from './sphere.js'
 import { updateTrail } from './trail.js'
 import { createTerrain, getTerrainMesh } from './terrain.js'
-import { setOnTerrainChange } from './gui.js'
+import { setOnTerrainChange, setRadialBlurMaterial } from './gui.js'
+import { config } from './config.js'
+
+import radialBlurVert from './shaders/radial-blur.vert'
+import radialBlurFrag from './shaders/radial-blur.frag'
+import sphereVert from './shaders/sphere.vert'
+import sphereMaskFrag from './shaders/sphere-mask.frag'
 
 /**
  * OrbitControls
@@ -33,6 +44,65 @@ function rebuildTerrain() {
 }
 rebuildTerrain()
 setOnTerrainChange(rebuildTerrain)
+
+/**
+ * Mask scene: renders the sphere with trail as a black/white mask
+ */
+const maskScene = new THREE.Scene()
+const maskMaterial = new THREE.ShaderMaterial({
+	vertexShader: sphereVert,
+	fragmentShader: sphereMaskFrag,
+	uniforms: {
+		uTrailMap: { value: null },
+		uTrailColorCore: sphereMaterial.uniforms.uTrailColorCore,
+		uTrailColorMid: sphereMaterial.uniforms.uTrailColorMid,
+		uTrailColorEdge: sphereMaterial.uniforms.uTrailColorEdge,
+	},
+})
+const maskSphere = new THREE.Mesh(sphere.geometry, maskMaterial)
+maskScene.add(maskSphere)
+
+const maskRT = new THREE.WebGLRenderTarget(sizes.width, sizes.height, {
+	minFilter: THREE.LinearFilter,
+	magFilter: THREE.LinearFilter,
+	format: THREE.RGBAFormat,
+	type: THREE.HalfFloatType,
+	depthBuffer: true,
+})
+
+/**
+ * Post-processing: EffectComposer + radial blur ShaderPass
+ */
+const resolution = new THREE.Vector2()
+renderer.getDrawingBufferSize(resolution)
+
+const radialBlurMaterial = new THREE.ShaderMaterial({
+	vertexShader: radialBlurVert,
+	fragmentShader: radialBlurFrag,
+	uniforms: {
+		tDiffuse: { value: null },
+		uMaskTexture: { value: maskRT.texture },
+		uResolution: { value: resolution },
+		uSamples: { value: config.radialBlurSamples },
+		uReduce: { value: config.radialBlurReduce },
+		uStrength: { value: config.radialBlurStrength },
+		uColor: { value: new THREE.Color(config.radialBlurColor) },
+		uColorDistance: { value: config.radialBlurColorDistance },
+		uCenter: { value: new THREE.Vector3(0, 0, 0) },
+		uProjectionMatrix: { value: new THREE.Matrix4() },
+		uViewMatrix: { value: new THREE.Matrix4() },
+	},
+})
+
+const composer = new EffectComposer(renderer)
+composer.addPass(new RenderPass(scene, camera))
+const radialBlurPass = new ShaderPass(radialBlurMaterial, 'tDiffuse')
+composer.addPass(radialBlurPass)
+
+export { radialBlurMaterial }
+
+// Connect GUI to radial blur material
+setRadialBlurMaterial(radialBlurMaterial)
 
 /**
  * Raycasting
@@ -82,9 +152,31 @@ function tic() {
 		terrain.material.uniforms.uTrailMap.value = trailTexture
 	}
 
-	renderer.render(scene, camera)
+	// Render mask scene (sphere trail only, everything else black)
+	maskMaterial.uniforms.uTrailMap.value = trailTexture
+	renderer.setRenderTarget(maskRT)
+	renderer.setClearColor(0x000000, 1)
+	renderer.clear()
+	renderer.render(maskScene, camera)
+	renderer.setRenderTarget(null)
+
+	// Update radial blur uniforms
+	radialBlurMaterial.uniforms.uProjectionMatrix.value.copy(camera.projectionMatrix)
+	radialBlurMaterial.uniforms.uViewMatrix.value.copy(camera.matrixWorldInverse)
+
+	// Render scene via composer (RenderPass + radial blur)
+	composer.render()
 
 	requestAnimationFrame(tic)
 }
 
 requestAnimationFrame(tic)
+
+/**
+ * Handle resize for post-processing resources
+ */
+window.addEventListener('resize', () => {
+	maskRT.setSize(sizes.width, sizes.height)
+	composer.setSize(sizes.width, sizes.height)
+	renderer.getDrawingBufferSize(resolution)
+})

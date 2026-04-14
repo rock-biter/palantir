@@ -1,6 +1,6 @@
 export const config = {
 	// Trail
-	brushSize: 0.45,
+	brushSize: 0.3,
 	brushStrength: 0.5,
 	diffusion: 0.13,
 	decay: 0.96,
@@ -12,7 +12,7 @@ export const config = {
 	trailColorCore: '#ffd753',
 	trailColorMid: '#ff8300',
 	trailColorEdge: '#d80000',
-	baseColor: '#575250',
+	baseColor: '#0e0e0e',
 
 	// Sphere
 	sphereRadius: 2.0,
@@ -39,4 +39,11 @@ export const config = {
 	trailMaxDist: 15.0,
 	trailFalloffCurve: 3.6,
 	trailBlur: 2.0,
+
+	// Radial Blur
+	radialBlurSamples: 80,
+	radialBlurReduce: 0.1,
+	radialBlurStrength: 2.3,
+	radialBlurColor: '#8a0000',
+	radialBlurColorDistance: 1.05,
 }

@@ -19,7 +19,7 @@ export const camera = new THREE.PerspectiveCamera(
 	0.1,
 	100,
 )
-camera.position.set(4, 4, 4)
+camera.position.set(-8, 4, -7)
 camera.lookAt(new THREE.Vector3(0, 0, 0))
 
 export function handleResize() {
