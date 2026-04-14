@@ -39,6 +39,7 @@ export const config = {
 	trailMaxDist: 15.0,
 	trailFalloffCurve: 3.6,
 	trailBlur: 2.0,
+	chromaShift: 0.05,
 
 	// Radial Blur
 	radialBlurSamples: 80,

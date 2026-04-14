@@ -195,6 +195,7 @@ export function createTerrain() {
 			uTrailMaxDist: { value: config.trailMaxDist },
 			uTrailFalloffCurve: { value: config.trailFalloffCurve },
 			uTrailBlur: { value: config.trailBlur },
+			uChromaShift: { value: config.chromaShift },
 		},
 	})
 
