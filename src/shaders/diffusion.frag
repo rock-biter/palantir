@@ -141,7 +141,7 @@ void main() {
   float theta = (1.0 - vUv.y) * PI;
   float sinT = sin(theta);
 
-  vec2 prev = texture2D(uPrevFrame, vUv).rg;
+  vec2 prev = textureLod(uPrevFrame, vUv, 0.0).rg;
   float height = prev.r;   // wave height / trail value
   float vel = prev.g;   // wave velocity
 
@@ -151,19 +151,19 @@ void main() {
   vec2 advectedUV = vUv + curlOffset;
   advectedUV.x = fract(advectedUV.x); // periodic in φ
   advectedUV.y = clamp(advectedUV.y, 0.0, 1.0); // clamp at poles
-  float advected = texture2D(uPrevFrame, advectedUV).r;
+  float advected = textureLod(uPrevFrame, advectedUV, 0.0).r;
 
   // --- Neighbor samples (θ = v-direction, clamped at poles) ---
   float vUp = min(vUv.y + texel.y, 1.0);
   float vDown = max(vUv.y - texel.y, 0.0);
-  float fUp = texture2D(uPrevFrame, vec2(vUv.x, vUp)).r;
-  float fDown = texture2D(uPrevFrame, vec2(vUv.x, vDown)).r;
+  float fUp = textureLod(uPrevFrame, vec2(vUv.x, vUp), 0.0).r;
+  float fDown = textureLod(uPrevFrame, vec2(vUv.x, vDown), 0.0).r;
 
   // φ = u-direction (periodic / wrapping)
   float uRight = fract(vUv.x + texel.x);
   float uLeft = fract(vUv.x - texel.x + 1.0);
-  float fRight = texture2D(uPrevFrame, vec2(uRight, vUv.y)).r;
-  float fLeft = texture2D(uPrevFrame, vec2(uLeft, vUv.y)).r;
+  float fRight = textureLod(uPrevFrame, vec2(uRight, vUv.y), 0.0).r;
+  float fLeft = textureLod(uPrevFrame, vec2(uLeft, vUv.y), 0.0).r;
 
   // --- Weighted average with spherical metric compensation ---
   float wPhi = 1.0 / max(sinT * sinT, 0.01);

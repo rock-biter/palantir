@@ -1,0 +1,50 @@
+export const config = {
+	// Trail
+	brushSize: 0.3,
+	brushStrength: 0.5,
+	diffusion: 0.13,
+	decay: 0.96,
+	waveSpeed: 0.4,
+	waveDamping: 0.13,
+	curlScale: 2.0,
+	curlSpeed: 0.4,
+	curlStrength: 0.0035,
+	trailColorCore: '#ffd753',
+	trailColorMid: '#ff8300',
+	trailColorEdge: '#d80000',
+	baseColor: '#0e0e0e',
+
+	// Sphere
+	sphereRadius: 2.0,
+
+	// Terrain
+	terrainY: -1.9,
+	terrainSize: 30,
+	terrainSegments: 100,
+	terrainHeight: 3.5,
+	terrainOctaves: 6,
+	terrainFrequency: 0.065,
+	terrainLacunarity: 1.8,
+	terrainGain: 0.5,
+	terrainColor: '#3a3a3a',
+	terrainFalloffStart: 0.75,
+	terrainFalloffEnd: 0.95,
+	terrainFalloffNoiseScale: 3.0,
+	terrainFalloffNoiseStrength: 0.27,
+	terrainNoiseOffsetX: 27.5,
+	terrainNoiseOffsetY: -2.7,
+	terrainTexScale: 3.0,
+	terrainTexOffsetX: 0.0,
+	terrainTexOffsetY: 0.0,
+	trailMaxDist: 15.0,
+	trailFalloffCurve: 3.6,
+	trailBlur: 2.0,
+	chromaShift: 0.05,
+
+	// Radial Blur
+	radialBlurSamples: 80,
+	radialBlurReduce: 0.1,
+	radialBlurStrength: 2.3,
+	radialBlurColor: '#8a0000',
+	radialBlurColorDistance: 1.05,
+}

@@ -1,90 +1,19 @@
 import './style.css'
 import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
-import { Pane } from 'tweakpane'
+import { EffectComposer, RenderPass, ShaderPass } from 'postprocessing'
 
-import diffusionVert from './shaders/diffusion.vert'
-import diffusionFrag from './shaders/diffusion.frag'
+import { scene, renderer, camera, sizes } from './renderer.js'
+import { sphere, sphereMaterial } from './sphere.js'
+import { updateTrail } from './trail.js'
+import { createTerrain, getTerrainMesh } from './terrain.js'
+import { setOnTerrainChange, setRadialBlurMaterial } from './gui.js'
+import { config } from './config.js'
+
+import radialBlurVert from './shaders/radial-blur.vert'
+import radialBlurFrag from './shaders/radial-blur.frag'
 import sphereVert from './shaders/sphere.vert'
-import sphereFrag from './shaders/sphere.frag'
-
-/**
- * Config
- */
-const config = {
-	brushSize: 0.2,
-	brushStrength: 0.5,
-	diffusion: 0.13,
-	decay: 0.96,
-	waveSpeed: 0.4,
-	waveDamping: 0.13,
-	curlScale: 2.0,
-	curlSpeed: 0.4,
-	curlStrength: 0.0035,
-	trailColorCore: '#ff9c21', //#ff9c21
-	trailColorMid: '#ff4606', //#ff4606
-	trailColorEdge: '#d80000', //#d80000
-	baseColor: '#575250', //#575250
-}
-
-const pane = new Pane()
-const trailFolder = pane.addFolder({ title: 'Trail' })
-trailFolder.addBinding(config, 'brushSize', { min: 0.01, max: 0.5, step: 0.01 })
-trailFolder.addBinding(config, 'brushStrength', {
-	min: 0.1,
-	max: 1.0,
-	step: 0.05,
-})
-trailFolder.addBinding(config, 'diffusion', { min: 0.0, max: 2.0, step: 0.01 })
-trailFolder.addBinding(config, 'decay', { min: 0.9, max: 1.0, step: 0.001 })
-trailFolder.addBinding(config, 'waveSpeed', { min: 0.0, max: 1.0, step: 0.01 })
-trailFolder.addBinding(config, 'waveDamping', {
-	min: 0.0,
-	max: 0.2,
-	step: 0.005,
-})
-trailFolder.addBinding(config, 'curlScale', { min: 0.5, max: 10.0, step: 0.1 })
-trailFolder.addBinding(config, 'curlSpeed', { min: 0.0, max: 3.0, step: 0.05 })
-trailFolder.addBinding(config, 'curlStrength', {
-	min: 0.0,
-	max: 0.02,
-	step: 0.0005,
-})
-trailFolder.addBinding(config, 'trailColorCore')
-trailFolder.addBinding(config, 'trailColorMid')
-trailFolder.addBinding(config, 'trailColorEdge')
-trailFolder.addBinding(config, 'baseColor')
-
-/**
- * Scene
- */
-const scene = new THREE.Scene()
-
-const sizes = {
-	width: window.innerWidth,
-	height: window.innerHeight,
-}
-
-/**
- * Renderer
- */
-const renderer = new THREE.WebGLRenderer({
-	antialias: window.devicePixelRatio < 2,
-})
-document.body.appendChild(renderer.domElement)
-
-/**
- * Camera
- */
-const fov = 60
-const camera = new THREE.PerspectiveCamera(
-	fov,
-	sizes.width / sizes.height,
-	0.1,
-	100,
-)
-camera.position.set(4, 4, 4)
-camera.lookAt(new THREE.Vector3(0, 0, 0))
+import sphereMaskFrag from './shaders/sphere-mask.frag'
 
 /**
  * OrbitControls
@@ -93,67 +22,83 @@ const controls = new OrbitControls(camera, renderer.domElement)
 controls.enableDamping = true
 
 /**
- * Ping-pong render targets for trail diffusion
+ * Add objects to scene
  */
-const SIM_RES = 512
-const rtOptions = {
+scene.add(sphere)
+
+const ambientLight = new THREE.AmbientLight(0xffffff, 0.3)
+scene.add(ambientLight)
+const dirLight = new THREE.DirectionalLight(0xffffff, 3.0)
+dirLight.position.set(5, 10, 7)
+scene.add(dirLight)
+
+function rebuildTerrain() {
+	const oldMesh = getTerrainMesh()
+	if (oldMesh) scene.remove(oldMesh)
+	const newMesh = createTerrain()
+	scene.add(newMesh)
+}
+rebuildTerrain()
+setOnTerrainChange(rebuildTerrain)
+
+/**
+ * Mask scene: renders the sphere with trail as a black/white mask
+ */
+const maskScene = new THREE.Scene()
+const maskMaterial = new THREE.ShaderMaterial({
+	vertexShader: sphereVert,
+	fragmentShader: sphereMaskFrag,
+	uniforms: {
+		uTrailMap: { value: null },
+		uTrailColorCore: sphereMaterial.uniforms.uTrailColorCore,
+		uTrailColorMid: sphereMaterial.uniforms.uTrailColorMid,
+		uTrailColorEdge: sphereMaterial.uniforms.uTrailColorEdge,
+	},
+})
+const maskSphere = new THREE.Mesh(sphere.geometry, maskMaterial)
+maskScene.add(maskSphere)
+
+const maskRT = new THREE.WebGLRenderTarget(sizes.width, sizes.height, {
 	minFilter: THREE.LinearFilter,
 	magFilter: THREE.LinearFilter,
 	format: THREE.RGBAFormat,
-	type: THREE.FloatType,
-}
-const rtA = new THREE.WebGLRenderTarget(SIM_RES, SIM_RES, rtOptions)
-const rtB = new THREE.WebGLRenderTarget(SIM_RES, SIM_RES, rtOptions)
-let currentRT = rtA
-let prevRT = rtB
+	type: THREE.HalfFloatType,
+	depthBuffer: true,
+})
 
 /**
- * Full-screen quad for diffusion pass
+ * Post-processing: EffectComposer + radial blur ShaderPass
  */
-const diffusionMaterial = new THREE.ShaderMaterial({
-	vertexShader: diffusionVert,
-	fragmentShader: diffusionFrag,
-	uniforms: {
-		uPrevFrame: { value: null },
-		uResolution: { value: new THREE.Vector2(SIM_RES, SIM_RES) },
-		uHitPoint: { value: new THREE.Vector3(0, 0, 0) },
-		uBrushSize: { value: config.brushSize },
-		uBrushStrength: { value: config.brushStrength },
-		uDiffusion: { value: config.diffusion },
-		uDecay: { value: config.decay },
-		uWaveSpeed: { value: config.waveSpeed },
-		uWaveDamping: { value: config.waveDamping },
-		uIsHitting: { value: 0.0 },
-		uTime: { value: 0.0 },
-		uCurlScale: { value: config.curlScale },
-		uCurlSpeed: { value: config.curlSpeed },
-		uCurlStrength: { value: config.curlStrength },
-	},
-})
-const quadGeometry = new THREE.PlaneGeometry(2, 2)
-const quadMesh = new THREE.Mesh(quadGeometry, diffusionMaterial)
-const quadScene = new THREE.Scene()
-quadScene.add(quadMesh)
-const quadCamera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1)
+const resolution = new THREE.Vector2()
+renderer.getDrawingBufferSize(resolution)
 
-/**
- * Sphere with trail material
- */
-const SPHERE_RADIUS = 2
-const sphereGeometry = new THREE.SphereGeometry(SPHERE_RADIUS, 128, 128)
-const sphereMaterial = new THREE.ShaderMaterial({
-	vertexShader: sphereVert,
-	fragmentShader: sphereFrag,
+const radialBlurMaterial = new THREE.ShaderMaterial({
+	vertexShader: radialBlurVert,
+	fragmentShader: radialBlurFrag,
 	uniforms: {
-		uTrailMap: { value: rtA.texture },
-		uBaseColor: { value: new THREE.Color(config.baseColor) },
-		uTrailColorCore: { value: new THREE.Color(config.trailColorCore) },
-		uTrailColorMid: { value: new THREE.Color(config.trailColorMid) },
-		uTrailColorEdge: { value: new THREE.Color(config.trailColorEdge) },
+		tDiffuse: { value: null },
+		uMaskTexture: { value: maskRT.texture },
+		uResolution: { value: resolution },
+		uSamples: { value: config.radialBlurSamples },
+		uReduce: { value: config.radialBlurReduce },
+		uStrength: { value: config.radialBlurStrength },
+		uColor: { value: new THREE.Color(config.radialBlurColor) },
+		uColorDistance: { value: config.radialBlurColorDistance },
+		uCenter: { value: new THREE.Vector3(0, 0, 0) },
+		uProjectionMatrix: { value: new THREE.Matrix4() },
+		uViewMatrix: { value: new THREE.Matrix4() },
 	},
 })
-const sphere = new THREE.Mesh(sphereGeometry, sphereMaterial)
-scene.add(sphere)
+
+const composer = new EffectComposer(renderer)
+composer.addPass(new RenderPass(scene, camera))
+const radialBlurPass = new ShaderPass(radialBlurMaterial, 'tDiffuse')
+composer.addPass(radialBlurPass)
+
+export { radialBlurMaterial }
+
+// Connect GUI to radial blur material
+setRadialBlurMaterial(radialBlurMaterial)
 
 /**
  * Raycasting
@@ -172,7 +117,6 @@ function onPointerMove(event) {
 
 	if (intersects.length > 0) {
 		const point = intersects[0].point.clone()
-		// Normalize to unit sphere direction (sphere is at origin)
 		hitPointNormalized.copy(point).normalize()
 		isHitting = true
 	} else {
@@ -183,25 +127,6 @@ function onPointerMove(event) {
 window.addEventListener('pointermove', onPointerMove)
 
 /**
- * Update tweakpane -> uniforms
- */
-pane.on('change', () => {
-	diffusionMaterial.uniforms.uBrushSize.value = config.brushSize
-	diffusionMaterial.uniforms.uBrushStrength.value = config.brushStrength
-	diffusionMaterial.uniforms.uDiffusion.value = config.diffusion
-	diffusionMaterial.uniforms.uDecay.value = config.decay
-	diffusionMaterial.uniforms.uWaveSpeed.value = config.waveSpeed
-	diffusionMaterial.uniforms.uWaveDamping.value = config.waveDamping
-	diffusionMaterial.uniforms.uCurlScale.value = config.curlScale
-	diffusionMaterial.uniforms.uCurlSpeed.value = config.curlSpeed
-	diffusionMaterial.uniforms.uCurlStrength.value = config.curlStrength
-	sphereMaterial.uniforms.uBaseColor.value.set(config.baseColor)
-	sphereMaterial.uniforms.uTrailColorCore.value.set(config.trailColorCore)
-	sphereMaterial.uniforms.uTrailColorMid.value.set(config.trailColorMid)
-	sphereMaterial.uniforms.uTrailColorEdge.value.set(config.trailColorEdge)
-})
-
-/**
  * Frame loop
  */
 const clock = new THREE.Clock()
@@ -209,45 +134,47 @@ const clock = new THREE.Clock()
 function tic() {
 	controls.update()
 
-	diffusionMaterial.uniforms.uTime.value = clock.getElapsedTime()
+	const trailTexture = updateTrail(
+		renderer,
+		hitPointNormalized,
+		isHitting,
+		clock.getElapsedTime(),
+	)
+	sphereMaterial.uniforms.uTrailMap.value = trailTexture
 
-	// --- Diffusion pass (ping-pong) ---
-	diffusionMaterial.uniforms.uPrevFrame.value = prevRT.texture
-	diffusionMaterial.uniforms.uHitPoint.value.copy(hitPointNormalized)
-	diffusionMaterial.uniforms.uIsHitting.value = isHitting ? 1.0 : 0.0
+	// Project trail onto terrain
+	const terrain = getTerrainMesh()
+	if (terrain) {
+		terrain.material.uniforms.uTrailMap.value = trailTexture
+	}
 
-	renderer.setRenderTarget(currentRT)
-	renderer.render(quadScene, quadCamera)
+	// Render mask scene (sphere trail only, everything else black)
+	maskMaterial.uniforms.uTrailMap.value = trailTexture
+	renderer.setRenderTarget(maskRT)
+	renderer.setClearColor(0x000000, 1)
+	renderer.clear()
+	renderer.render(maskScene, camera)
 	renderer.setRenderTarget(null)
 
-	// Bind the freshly rendered trail to the sphere material
-	sphereMaterial.uniforms.uTrailMap.value = currentRT.texture
+	// Update radial blur uniforms
+	radialBlurMaterial.uniforms.uProjectionMatrix.value.copy(
+		camera.projectionMatrix,
+	)
+	radialBlurMaterial.uniforms.uViewMatrix.value.copy(camera.matrixWorldInverse)
 
-	// Swap buffers
-	const temp = currentRT
-	currentRT = prevRT
-	prevRT = temp
-
-	// --- Main scene pass ---
-	renderer.render(scene, camera)
+	// Render scene via composer (RenderPass + radial blur)
+	composer.render()
 
 	requestAnimationFrame(tic)
 }
 
-handleResize()
 requestAnimationFrame(tic)
 
-window.addEventListener('resize', handleResize)
-
-function handleResize() {
-	sizes.width = window.innerWidth
-	sizes.height = window.innerHeight
-
-	camera.aspect = sizes.width / sizes.height
-	camera.updateProjectionMatrix()
-
-	renderer.setSize(sizes.width, sizes.height)
-
-	const pixelRatio = Math.min(window.devicePixelRatio, 2)
-	renderer.setPixelRatio(pixelRatio)
-}
+/**
+ * Handle resize for post-processing resources
+ */
+window.addEventListener('resize', () => {
+	maskRT.setSize(sizes.width, sizes.height)
+	composer.setSize(sizes.width, sizes.height)
+	renderer.getDrawingBufferSize(resolution)
+})
