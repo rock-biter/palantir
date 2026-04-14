@@ -1,7 +1,7 @@
 import { Pane } from 'tweakpane'
 import { config } from './config.js'
 import { diffusionMaterial } from './trail.js'
-import { sphereMaterial, rebuildSphere } from './sphere.js'
+import { sphereMaterial, rebuildSphere, rebuildCubeCamera } from './sphere.js'
 import { getTerrainMesh } from './terrain.js'
 
 export const pane = new Pane()
@@ -44,6 +44,38 @@ sphereFolder.addBinding(config, 'sphereRadius', {
 })
 sphereFolder.on('change', () => {
 	rebuildSphere()
+})
+
+// --- Reflection folder ---
+const reflectionFolder = pane.addFolder({
+	title: 'Reflection',
+	expanded: false,
+})
+reflectionFolder.addBinding(config, 'cubeCameraResolution', {
+	label: 'resolution',
+	min: 32,
+	max: 512,
+	step: 32,
+})
+reflectionFolder.addBinding(config, 'fresnelExponent', {
+	label: 'fresnel exponent',
+	min: 0.1,
+	max: 10.0,
+	step: 0.1,
+})
+reflectionFolder.addBinding(config, 'reflectionIntensity', {
+	label: 'intensity',
+	min: 0.0,
+	max: 1.0,
+	step: 0.01,
+})
+reflectionFolder.on('change', (ev) => {
+	if (ev.presetKey === 'cubeCameraResolution') {
+		rebuildCubeCamera()
+	}
+	sphereMaterial.uniforms.uFresnelExponent.value = config.fresnelExponent
+	sphereMaterial.uniforms.uReflectionIntensity.value =
+		config.reflectionIntensity
 })
 
 // --- Terrain folder ---

@@ -5,10 +5,15 @@ uniform vec3 uBaseColor;
 uniform vec3 uTrailColorCore;  // center (high intensity)
 uniform vec3 uTrailColorMid;   // mid intensity
 uniform vec3 uTrailColorEdge;  // edges/tail (low intensity)
+uniform samplerCube uEnvMap;
+uniform float uFresnelExponent;
+uniform float uReflectionIntensity;
 
 varying vec2 vUv;
 varying vec3 vNormal;
 varying vec3 vWorldPosition;
+varying vec3 vWorldNormal;
+varying vec3 vViewDir;
 
 void main() {
   float trail = textureLod(uTrailMap, vUv, 0.0).r;
@@ -30,6 +35,12 @@ void main() {
 
   vec3 base = uBaseColor * lighting;
   vec3 color = mix(base, trailColor, trail);
+
+  // --- Fresnel reflection ---
+  vec3 reflectDir = reflect(vViewDir, normalize(vWorldNormal));
+  vec3 envColor = textureCube(uEnvMap, reflectDir).rgb;
+  float fresnel = pow(1.0 - max(dot(normalize(-vViewDir), normalize(vWorldNormal)), 0.0), uFresnelExponent);
+  color = mix(color, envColor, fresnel * uReflectionIntensity);
 
   // --- Color correction ---
   #include <tonemapping_fragment>

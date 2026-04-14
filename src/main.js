@@ -4,7 +4,7 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
 import { EffectComposer, RenderPass, ShaderPass } from 'postprocessing'
 
 import { scene, renderer, camera, sizes } from './renderer.js'
-import { sphere, sphereMaterial } from './sphere.js'
+import { sphere, sphereMaterial, cubeCamera } from './sphere.js'
 import { updateTrail } from './trail.js'
 import { createTerrain, getTerrainMesh } from './terrain.js'
 import { createBgTerrain, getBgTerrainMesh } from './bgTerrain.js'
@@ -161,6 +161,12 @@ function tic() {
 	if (terrain) {
 		terrain.material.uniforms.uTrailMap.value = trailTexture
 	}
+
+	// Update cube camera for reflections
+	sphere.visible = false
+	cubeCamera.position.copy(sphere.position)
+	cubeCamera.update(renderer, scene)
+	sphere.visible = true
 
 	// Render mask scene (sphere trail only, everything else black)
 	maskMaterial.uniforms.uTrailMap.value = trailTexture
