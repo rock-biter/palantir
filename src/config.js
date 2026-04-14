@@ -1,6 +1,6 @@
 export const config = {
 	// Trail
-	brushSize: 0.3,
+	brushSize: 0.2,
 	brushStrength: 0.5,
 	diffusion: 0.13,
 	decay: 0.96,
@@ -12,23 +12,23 @@ export const config = {
 	trailColorCore: '#ffd753',
 	trailColorMid: '#ff8300',
 	trailColorEdge: '#d80000',
-	baseColor: '#0e0e0e',
+	baseColor: '#000000',
 
 	// Sphere
 	sphereRadius: 2.0,
 
 	// Terrain
 	terrainY: -1.9,
-	terrainSize: 30,
-	terrainSegments: 100,
+	terrainSize: 50,
+	terrainSegments: 120,
 	terrainHeight: 3.5,
 	terrainOctaves: 6,
 	terrainFrequency: 0.065,
 	terrainLacunarity: 1.8,
 	terrainGain: 0.5,
 	terrainColor: '#3a3a3a',
-	terrainFalloffStart: 0.75,
-	terrainFalloffEnd: 0.95,
+	terrainFalloffStart: 0.6,
+	terrainFalloffEnd: 0.9,
 	terrainFalloffNoiseScale: 3.0,
 	terrainFalloffNoiseStrength: 0.27,
 	terrainNoiseOffsetX: 27.5,
@@ -41,10 +41,38 @@ export const config = {
 	trailBlur: 2.0,
 	chromaShift: 0.05,
 
+	// Background Terrain
+	bgTerrainY: -6,
+	bgTerrainSize: 200,
+	bgTerrainSegments: 80,
+	bgTerrainHeight: 13.0,
+	bgTerrainOctaves: 4,
+	bgTerrainFrequency: 0.025,
+	bgTerrainLacunarity: 3.9,
+	bgTerrainGain: 0.5,
+	bgTerrainColor: '#232121',
+	bgTerrainFalloffStart: 0.85,
+	bgTerrainFalloffEnd: 1.0,
+	bgTerrainFalloffNoiseScale: 2.0,
+	bgTerrainFalloffNoiseStrength: 0.15,
+	bgTerrainNoiseOffsetX: -95,
+	bgTerrainNoiseOffsetY: -100.0,
+	bgTerrainTexScale: 2.5,
+	bgTerrainTexOffsetX: 0.0,
+	bgTerrainTexOffsetY: 0.0,
+	bgTerrainEdgeStart: 0.65,
+	bgTerrainEdgeEnd: 1.0,
+	bgTerrainEdgeHeight: 17.5,
+
+	// Reflection
+	cubeCameraResolution: 128,
+	fresnelExponent: 1.25,
+	reflectionIntensity: 2,
+
 	// Radial Blur
 	radialBlurSamples: 80,
 	radialBlurReduce: 0.1,
-	radialBlurStrength: 2.3,
-	radialBlurColor: '#8a0000',
-	radialBlurColorDistance: 1.05,
+	radialBlurStrength: 2.87,
+	radialBlurColor: '#4e0600',
+	radialBlurColorDistance: 0.65,
 }

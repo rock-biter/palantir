@@ -4,10 +4,15 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
 import { EffectComposer, RenderPass, ShaderPass } from 'postprocessing'
 
 import { scene, renderer, camera, sizes } from './renderer.js'
-import { sphere, sphereMaterial } from './sphere.js'
+import { sphere, sphereMaterial, cubeCamera } from './sphere.js'
 import { updateTrail } from './trail.js'
 import { createTerrain, getTerrainMesh } from './terrain.js'
-import { setOnTerrainChange, setRadialBlurMaterial } from './gui.js'
+import { createBgTerrain, getBgTerrainMesh } from './bgTerrain.js'
+import {
+	setOnTerrainChange,
+	setRadialBlurMaterial,
+	setOnBgTerrainChange,
+} from './gui.js'
 import { config } from './config.js'
 
 import radialBlurVert from './shaders/radial-blur.vert'
@@ -26,11 +31,11 @@ controls.enableDamping = true
  */
 scene.add(sphere)
 
-const ambientLight = new THREE.AmbientLight(0xffffff, 0.3)
-scene.add(ambientLight)
-const dirLight = new THREE.DirectionalLight(0xffffff, 3.0)
-dirLight.position.set(5, 10, 7)
-scene.add(dirLight)
+// const ambientLight = new THREE.AmbientLight(0xffffff, 0.3)
+// // scene.add(ambientLight)
+// const dirLight = new THREE.DirectionalLight(0xffffff, 3.0)
+// dirLight.position.set(5, 10, 7)
+// // scene.add(dirLight)
 
 function rebuildTerrain() {
 	const oldMesh = getTerrainMesh()
@@ -40,6 +45,15 @@ function rebuildTerrain() {
 }
 rebuildTerrain()
 setOnTerrainChange(rebuildTerrain)
+
+function rebuildBgTerrain() {
+	const oldMesh = getBgTerrainMesh()
+	if (oldMesh) scene.remove(oldMesh)
+	const newMesh = createBgTerrain()
+	scene.add(newMesh)
+}
+rebuildBgTerrain()
+setOnBgTerrainChange(rebuildBgTerrain)
 
 /**
  * Mask scene: renders the sphere with trail as a black/white mask
@@ -147,6 +161,12 @@ function tic() {
 	if (terrain) {
 		terrain.material.uniforms.uTrailMap.value = trailTexture
 	}
+
+	// Update cube camera for reflections
+	sphere.visible = false
+	cubeCamera.position.copy(sphere.position)
+	cubeCamera.update(renderer, scene)
+	sphere.visible = true
 
 	// Render mask scene (sphere trail only, everything else black)
 	maskMaterial.uniforms.uTrailMap.value = trailTexture

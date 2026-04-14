@@ -1,7 +1,7 @@
 import { Pane } from 'tweakpane'
 import { config } from './config.js'
 import { diffusionMaterial } from './trail.js'
-import { sphereMaterial, rebuildSphere } from './sphere.js'
+import { sphereMaterial, rebuildSphere, rebuildCubeCamera } from './sphere.js'
 import { getTerrainMesh } from './terrain.js'
 
 export const pane = new Pane()
@@ -44,6 +44,38 @@ sphereFolder.addBinding(config, 'sphereRadius', {
 })
 sphereFolder.on('change', () => {
 	rebuildSphere()
+})
+
+// --- Reflection folder ---
+const reflectionFolder = pane.addFolder({
+	title: 'Reflection',
+	expanded: false,
+})
+reflectionFolder.addBinding(config, 'cubeCameraResolution', {
+	label: 'resolution',
+	min: 32,
+	max: 512,
+	step: 32,
+})
+reflectionFolder.addBinding(config, 'fresnelExponent', {
+	label: 'fresnel exponent',
+	min: 0.1,
+	max: 10.0,
+	step: 0.1,
+})
+reflectionFolder.addBinding(config, 'reflectionIntensity', {
+	label: 'intensity',
+	min: 0.0,
+	max: 1.0,
+	step: 0.01,
+})
+reflectionFolder.on('change', (ev) => {
+	if (ev.presetKey === 'cubeCameraResolution') {
+		rebuildCubeCamera()
+	}
+	sphereMaterial.uniforms.uFresnelExponent.value = config.fresnelExponent
+	sphereMaterial.uniforms.uReflectionIntensity.value =
+		config.reflectionIntensity
 })
 
 // --- Terrain folder ---
@@ -247,6 +279,143 @@ export function setRadialBlurMaterial(mat) {
 
 export function setOnTerrainChange(cb) {
 	onTerrainChange = cb
+}
+
+// --- Background Terrain folder ---
+let onBgTerrainChange = null
+
+const bgTerrainFolder = pane.addFolder({
+	title: 'Background Terrain',
+	expanded: false,
+})
+bgTerrainFolder.addBinding(config, 'bgTerrainY', {
+	label: 'position Y',
+	min: -20.0,
+	max: 10.0,
+	step: 0.1,
+})
+bgTerrainFolder.addBinding(config, 'bgTerrainHeight', {
+	label: 'height',
+	min: 0.0,
+	max: 30.0,
+	step: 0.5,
+})
+bgTerrainFolder.addBinding(config, 'bgTerrainOctaves', {
+	label: 'octaves',
+	min: 1,
+	max: 8,
+	step: 1,
+})
+bgTerrainFolder.addBinding(config, 'bgTerrainFrequency', {
+	label: 'frequency',
+	min: 0.001,
+	max: 0.1,
+	step: 0.001,
+})
+bgTerrainFolder.addBinding(config, 'bgTerrainLacunarity', {
+	label: 'lacunarity',
+	min: 1.0,
+	max: 4.0,
+	step: 0.1,
+})
+bgTerrainFolder.addBinding(config, 'bgTerrainGain', {
+	label: 'gain',
+	min: 0.1,
+	max: 0.9,
+	step: 0.05,
+})
+bgTerrainFolder.addBinding(config, 'bgTerrainColor', { label: 'color' })
+bgTerrainFolder.addBinding(config, 'bgTerrainSize', {
+	label: 'size',
+	min: 50,
+	max: 500,
+	step: 10,
+})
+bgTerrainFolder.addBinding(config, 'bgTerrainSegments', {
+	label: 'segments',
+	min: 16,
+	max: 128,
+	step: 16,
+})
+bgTerrainFolder.addBinding(config, 'bgTerrainNoiseOffsetX', {
+	label: 'noise offset X',
+	min: -100.0,
+	max: 100.0,
+	step: 0.1,
+})
+bgTerrainFolder.addBinding(config, 'bgTerrainNoiseOffsetY', {
+	label: 'noise offset Y',
+	min: -100.0,
+	max: 100.0,
+	step: 0.1,
+})
+bgTerrainFolder.addBinding(config, 'bgTerrainFalloffStart', {
+	label: 'falloff start',
+	min: 0.0,
+	max: 1.0,
+	step: 0.01,
+})
+bgTerrainFolder.addBinding(config, 'bgTerrainFalloffEnd', {
+	label: 'falloff end',
+	min: 0.0,
+	max: 1.0,
+	step: 0.01,
+})
+bgTerrainFolder.addBinding(config, 'bgTerrainFalloffNoiseScale', {
+	label: 'falloff noise scale',
+	min: 0.5,
+	max: 20.0,
+	step: 0.5,
+})
+bgTerrainFolder.addBinding(config, 'bgTerrainFalloffNoiseStrength', {
+	label: 'falloff noise str',
+	min: 0.0,
+	max: 0.5,
+	step: 0.01,
+})
+bgTerrainFolder.addBinding(config, 'bgTerrainTexScale', {
+	label: 'tex scale',
+	min: 0.5,
+	max: 40.0,
+	step: 0.5,
+})
+bgTerrainFolder.addBinding(config, 'bgTerrainTexOffsetX', {
+	label: 'tex offset X',
+	min: -10.0,
+	max: 10.0,
+	step: 0.1,
+})
+bgTerrainFolder.addBinding(config, 'bgTerrainTexOffsetY', {
+	label: 'tex offset Y',
+	min: -10.0,
+	max: 10.0,
+	step: 0.1,
+})
+bgTerrainFolder.addBinding(config, 'bgTerrainEdgeStart', {
+	label: 'edge start',
+	min: 0.0,
+	max: 1.0,
+	step: 0.01,
+})
+bgTerrainFolder.addBinding(config, 'bgTerrainEdgeEnd', {
+	label: 'edge end',
+	min: 0.0,
+	max: 1.0,
+	step: 0.01,
+})
+bgTerrainFolder.addBinding(config, 'bgTerrainEdgeHeight', {
+	label: 'edge height',
+	min: 0.0,
+	max: 40.0,
+	step: 0.5,
+})
+
+bgTerrainFolder.on('change', () => {
+	if (onBgTerrainChange) onBgTerrainChange()
+})
+
+export function setOnBgTerrainChange(cb) {
+	onBgTerrainChange = cb
 }
 
 // --- Sync trail uniforms on change ---
