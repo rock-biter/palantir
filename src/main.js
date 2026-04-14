@@ -1,11 +1,7 @@
 import './style.css'
 import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
-import {
-	EffectComposer,
-	RenderPass,
-	ShaderPass,
-} from 'postprocessing'
+import { EffectComposer, RenderPass, ShaderPass } from 'postprocessing'
 
 import { scene, renderer, camera, sizes } from './renderer.js'
 import { sphere, sphereMaterial } from './sphere.js'
@@ -161,7 +157,9 @@ function tic() {
 	renderer.setRenderTarget(null)
 
 	// Update radial blur uniforms
-	radialBlurMaterial.uniforms.uProjectionMatrix.value.copy(camera.projectionMatrix)
+	radialBlurMaterial.uniforms.uProjectionMatrix.value.copy(
+		camera.projectionMatrix,
+	)
 	radialBlurMaterial.uniforms.uViewMatrix.value.copy(camera.matrixWorldInverse)
 
 	// Render scene via composer (RenderPass + radial blur)

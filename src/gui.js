@@ -155,7 +155,10 @@ terrainFolder.addBinding(config, 'terrainTexOffsetY', {
 })
 
 // --- Trail Light folder ---
-const trailLightFolder = pane.addFolder({ title: 'Trail Light', expanded: false })
+const trailLightFolder = pane.addFolder({
+	title: 'Trail Light',
+	expanded: false,
+})
 trailLightFolder.addBinding(config, 'trailMaxDist', {
 	label: 'max distance',
 	min: 1.0,
@@ -188,7 +191,10 @@ trailLightFolder.on('change', () => {
 // --- Radial Blur folder ---
 let radialBlurMaterialRef = null
 
-const radialBlurFolder = pane.addFolder({ title: 'Radial Blur', expanded: false })
+const radialBlurFolder = pane.addFolder({
+	title: 'Radial Blur',
+	expanded: false,
+})
 radialBlurFolder.addBinding(config, 'radialBlurSamples', {
 	label: 'samples',
 	min: 1,
@@ -219,14 +225,10 @@ radialBlurFolder.addBinding(config, 'radialBlurColorDistance', {
 
 radialBlurFolder.on('change', () => {
 	if (radialBlurMaterialRef) {
-		radialBlurMaterialRef.uniforms.uSamples.value =
-			config.radialBlurSamples
+		radialBlurMaterialRef.uniforms.uSamples.value = config.radialBlurSamples
 		radialBlurMaterialRef.uniforms.uReduce.value = config.radialBlurReduce
-		radialBlurMaterialRef.uniforms.uStrength.value =
-			config.radialBlurStrength
-		radialBlurMaterialRef.uniforms.uColor.value.set(
-			config.radialBlurColor,
-		)
+		radialBlurMaterialRef.uniforms.uStrength.value = config.radialBlurStrength
+		radialBlurMaterialRef.uniforms.uColor.value.set(config.radialBlurColor)
 		radialBlurMaterialRef.uniforms.uColorDistance.value =
 			config.radialBlurColorDistance
 	}
