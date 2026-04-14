@@ -11,7 +11,7 @@ varying vec3 vNormal;
 varying vec3 vWorldPosition;
 
 void main() {
-  float trail = texture2D(uTrailMap, vUv).r;
+  float trail = textureLod(uTrailMap, vUv, 0.0).r;
 
   // --- 3-color gradient based on trail intensity ---
   // trail 1.0 = core (dark), 0.5 = mid, ~0.0 = edge (bright/yellow)
