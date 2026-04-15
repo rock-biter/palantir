@@ -8,6 +8,7 @@ import { sphere, sphereMaterial, cubeCamera } from './sphere.js'
 import { updateTrail } from './trail.js'
 import { createTerrain, getTerrainMesh } from './terrain.js'
 import { createBgTerrain, getBgTerrainMesh } from './bgTerrain.js'
+import { createBgPlane } from './bgPlane.js'
 import {
 	setOnTerrainChange,
 	setRadialBlurMaterial,
@@ -58,6 +59,10 @@ function rebuildBgTerrain() {
 }
 rebuildBgTerrain()
 setOnBgTerrainChange(rebuildBgTerrain)
+
+// Background reference plane
+const bgPlane = createBgPlane()
+scene.add(bgPlane)
 
 /**
  * Mask scene: renders the sphere with trail as a black/white mask
@@ -169,7 +174,9 @@ function tic() {
 	// Update cube camera for reflections
 	sphere.visible = false
 	cubeCamera.position.copy(sphere.position)
+	renderer.autoClear = true
 	cubeCamera.update(renderer, scene)
+	renderer.autoClear = false
 	sphere.visible = true
 
 	// Render mask scene (sphere trail only, everything else black)

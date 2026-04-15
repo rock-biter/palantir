@@ -75,4 +75,10 @@ export const config = {
 	radialBlurStrength: 2.87,
 	radialBlurColor: '#4e0600',
 	radialBlurColorDistance: 0.65,
+
+	// Background Plane (reference image)
+	bgPlaneVisible: false,
+	bgPlaneScale: 20,
+	bgPlaneY: 0,
+	bgPlaneZ: 0,
 }
