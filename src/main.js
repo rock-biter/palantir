@@ -23,8 +23,12 @@ import sphereMaskFrag from './shaders/sphere-mask.frag'
 /**
  * OrbitControls
  */
+const isMobile =
+	/Android|iPhone|iPad|iPod/i.test(navigator.userAgent) ||
+	('ontouchstart' in window && window.innerWidth < 1024)
 const controls = new OrbitControls(camera, renderer.domElement)
 controls.enableDamping = true
+controls.enabled = !isMobile
 
 /**
  * Add objects to scene
