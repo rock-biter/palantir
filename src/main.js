@@ -22,6 +22,21 @@ import sphereVert from './shaders/sphere.vert'
 import sphereMaskFrag from './shaders/sphere-mask.frag'
 
 /**
+ * Cubemap background
+ */
+const cubeTextureLoader = new THREE.CubeTextureLoader()
+cubeTextureLoader.setPath('/textures/env/')
+const envMap = cubeTextureLoader.load([
+	'px.png',
+	'nx.png',
+	'py.png',
+	'ny.png',
+	'pz.png',
+	'nz.png',
+])
+scene.background = envMap
+
+/**
  * OrbitControls
  */
 const isMobile =
