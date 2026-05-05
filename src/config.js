@@ -26,7 +26,7 @@ export const config = {
 	terrainFrequency: 0.065,
 	terrainLacunarity: 1.8,
 	terrainGain: 0.5,
-	terrainColor: '#3a3a3a',
+	terrainColor: '#603c3c', //'#3a3a3a',
 	terrainFalloffStart: 0.6,
 	terrainFalloffEnd: 0.9,
 	terrainFalloffNoiseScale: 3.0,
@@ -43,18 +43,18 @@ export const config = {
 
 	// Background Terrain
 	bgTerrainY: -6,
-	bgTerrainSize: 200,
-	bgTerrainSegments: 80,
+	bgTerrainSize: 300,
+	bgTerrainSegments: 100,
 	bgTerrainHeight: 13.0,
 	bgTerrainOctaves: 4,
 	bgTerrainFrequency: 0.025,
 	bgTerrainLacunarity: 3.9,
 	bgTerrainGain: 0.5,
-	bgTerrainColor: '#232121',
-	bgTerrainFalloffStart: 0.85,
+	bgTerrainColor: '#331616', //,
+	bgTerrainFalloffStart: 1, //0.85,
 	bgTerrainFalloffEnd: 1.0,
 	bgTerrainFalloffNoiseScale: 2.0,
-	bgTerrainFalloffNoiseStrength: 0.15,
+	bgTerrainFalloffNoiseStrength: 0, //0.15,
 	bgTerrainNoiseOffsetX: -95,
 	bgTerrainNoiseOffsetY: -100.0,
 	bgTerrainTexScale: 2.5,
@@ -75,4 +75,10 @@ export const config = {
 	radialBlurStrength: 2.87,
 	radialBlurColor: '#4e0600',
 	radialBlurColorDistance: 0.65,
+
+	// Background Plane (reference image)
+	bgPlaneVisible: false,
+	bgPlaneScale: 20,
+	bgPlaneY: 0,
+	bgPlaneZ: 0,
 }

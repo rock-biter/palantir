@@ -8,6 +8,7 @@ import { sphere, sphereMaterial, cubeCamera } from './sphere.js'
 import { updateTrail } from './trail.js'
 import { createTerrain, getTerrainMesh } from './terrain.js'
 import { createBgTerrain, getBgTerrainMesh } from './bgTerrain.js'
+import { createBgPlane } from './bgPlane.js'
 import {
 	setOnTerrainChange,
 	setRadialBlurMaterial,
@@ -19,6 +20,21 @@ import radialBlurVert from './shaders/radial-blur.vert'
 import radialBlurFrag from './shaders/radial-blur.frag'
 import sphereVert from './shaders/sphere.vert'
 import sphereMaskFrag from './shaders/sphere-mask.frag'
+
+/**
+ * Cubemap background
+ */
+const cubeTextureLoader = new THREE.CubeTextureLoader()
+cubeTextureLoader.setPath('/textures/env/')
+const envMap = cubeTextureLoader.load([
+	'px.png',
+	'nx.png',
+	'py.png',
+	'ny.png',
+	'pz.png',
+	'nz.png',
+])
+scene.background = envMap
 
 /**
  * OrbitControls
@@ -58,6 +74,10 @@ function rebuildBgTerrain() {
 }
 rebuildBgTerrain()
 setOnBgTerrainChange(rebuildBgTerrain)
+
+// Background reference plane
+const bgPlane = createBgPlane()
+scene.add(bgPlane)
 
 /**
  * Mask scene: renders the sphere with trail as a black/white mask
@@ -169,7 +189,9 @@ function tic() {
 	// Update cube camera for reflections
 	sphere.visible = false
 	cubeCamera.position.copy(sphere.position)
+	renderer.autoClear = true
 	cubeCamera.update(renderer, scene)
+	renderer.autoClear = false
 	sphere.visible = true
 
 	// Render mask scene (sphere trail only, everything else black)

@@ -3,6 +3,7 @@ import { config } from './config.js'
 import { diffusionMaterial } from './trail.js'
 import { sphereMaterial, rebuildSphere, rebuildCubeCamera } from './sphere.js'
 import { getTerrainMesh } from './terrain.js'
+import { applyBgPlaneConfig } from './bgPlane.js'
 
 export const pane = new Pane()
 
@@ -417,6 +418,34 @@ bgTerrainFolder.on('change', () => {
 export function setOnBgTerrainChange(cb) {
 	onBgTerrainChange = cb
 }
+
+// --- Background Plane folder (reference image) ---
+const bgPlaneFolder = pane.addFolder({
+	title: 'Background Plane',
+	expanded: false,
+})
+bgPlaneFolder.addBinding(config, 'bgPlaneVisible', { label: 'visible' })
+bgPlaneFolder.addBinding(config, 'bgPlaneScale', {
+	label: 'scale',
+	min: 1,
+	max: 100,
+	step: 0.5,
+})
+bgPlaneFolder.addBinding(config, 'bgPlaneY', {
+	label: 'height (Y)',
+	min: -50,
+	max: 50,
+	step: 0.1,
+})
+bgPlaneFolder.addBinding(config, 'bgPlaneZ', {
+	label: 'depth (Z)',
+	min: -100,
+	max: 100,
+	step: 0.5,
+})
+bgPlaneFolder.on('change', () => {
+	applyBgPlaneConfig()
+})
 
 // --- Sync trail uniforms on change ---
 trailFolder.on('change', () => {
