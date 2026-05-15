@@ -3,6 +3,7 @@ import { config } from './config.js'
 
 import diffusionVert from './shaders/diffusion.vert'
 import diffusionFrag from './shaders/diffusion.frag'
+import { KawaseBlur } from './kawaseBlur.js'
 
 const SIM_RES = 512
 const rtOptions = {
@@ -14,8 +15,14 @@ const rtOptions = {
 }
 const rtA = new THREE.WebGLRenderTarget(SIM_RES, SIM_RES, rtOptions)
 const rtB = new THREE.WebGLRenderTarget(SIM_RES, SIM_RES, rtOptions)
+// RepeatWrapping on U so the first Kawase pass can bilinear-sample
+// across the spherical seam (u=0 == u=1) without clamping.
+rtA.texture.wrapS = THREE.RepeatWrapping
+rtB.texture.wrapS = THREE.RepeatWrapping
 let currentRT = rtA
 let prevRT = rtB
+
+const kawaseBlur = new KawaseBlur(SIM_RES, SIM_RES)
 
 export const diffusionMaterial = new THREE.ShaderMaterial({
 	vertexShader: diffusionVert,
@@ -63,12 +70,15 @@ export function updateTrail(renderer, hitPointNormalized, isHitting, time) {
 		gl.bindTexture(gl.TEXTURE_2D, null)
 	}
 
-	const texture = currentRT.texture
+	const trail = currentRT.texture
 
-	// Swap buffers
+	// Swap diffusion buffers
 	const temp = currentRT
 	currentRT = prevRT
 	prevRT = temp
 
-	return texture
+	// Run Kawase blur for a seam-free blurred version of the trail
+	const blurred = kawaseBlur.render(renderer, trail)
+
+	return { trail, blurred }
 }

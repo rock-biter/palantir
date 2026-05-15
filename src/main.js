@@ -172,18 +172,21 @@ const clock = new THREE.Clock()
 function tic() {
 	controls.update()
 
-	const trailTexture = updateTrail(
+	const { trail: trailTexture, blurred: trailBlurred } = updateTrail(
 		renderer,
 		hitPointNormalized,
 		isHitting,
 		clock.getElapsedTime(),
 	)
+	// trailTexture.wrapS = THREE.RepeatWrapping
+	// trailTexture.wrapT = THREE.RepeatWrapping
 	sphereMaterial.uniforms.uTrailMap.value = trailTexture
 
 	// Project trail onto terrain
 	const terrain = getTerrainMesh()
 	if (terrain) {
 		terrain.material.uniforms.uTrailMap.value = trailTexture
+		terrain.material.uniforms.uTrailMapBlurred.value = trailBlurred
 	}
 
 	// Update cube camera for reflections
