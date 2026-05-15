@@ -110,7 +110,7 @@ export const config = {
 	// Shadow Map
 	shadowMaxDist: 40.0,
 	shadowResolution: 256 * 2,
-	shadowStrength: 1.2,
+	shadowStrength: 0.9,
 	shadowBias: 0.0,
 	shadowFalloff: 10.0,
 }
