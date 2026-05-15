@@ -11,6 +11,10 @@ const grassTexture = new THREE.TextureLoader().load(
 grassTexture.wrapS = THREE.ClampToEdgeWrapping
 grassTexture.wrapT = THREE.ClampToEdgeWrapping
 
+const fbmColorTexture = new THREE.TextureLoader().load('/textures/fbm-color.png')
+fbmColorTexture.wrapS = THREE.RepeatWrapping
+fbmColorTexture.wrapT = THREE.RepeatWrapping
+
 // ---- CPU-side value noise for patch distribution ----
 
 function hash2D(x, y) {
@@ -132,6 +136,8 @@ export function createGrass() {
 			uGrassFalloffPower: { value: grassFalloffPower },
 			uColorVariation: { value: grassColorVariation },
 			uGrassTexture: { value: grassTexture },
+			uFbmColorMap: { value: fbmColorTexture },
+			uFbmColorStrength: { value: config.grassFbmColorStrength },
 		},
 	})
 

@@ -6,6 +6,9 @@ precision highp float;
 uniform vec3 uColorBase;
 uniform vec3 uColorTip;
 uniform sampler2D uGrassTexture;
+uniform sampler2D uFbmColorMap;
+uniform float uFbmColorStrength;
+uniform float uTerrainSize;
 
 // Trail projection
 uniform sampler2D uTrailMap;
@@ -84,6 +87,11 @@ void main() {
 
   // Apply grayscale texture trama to the final blade color
   color *= grassGray;
+
+  // FBM color variation: sample world-space color map and tint the blade
+  // vec2 colorMapUV = vWorldPos.xz / uTerrainSize + 0.5;
+  vec3 fbmTint = texture2D(uFbmColorMap, vUv * vec2(1., 0.5)).rgb;
+  color = mix(color, color * fbmTint * 2.0, uFbmColorStrength);
 
   gl_FragColor = vec4(color, 1.0);
 }

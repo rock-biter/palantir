@@ -97,6 +97,7 @@ export const config = {
 	grassFalloffDistance: 50.0,
 	grassFalloffPower: 1.3,
 	grassColorVariation: 0.55, // Debug
+	grassFbmColorStrength: 0.5,
 	showHeightMap: false,
 
 	// Background Plane (reference image)
