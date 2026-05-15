@@ -11,7 +11,9 @@ const grassTexture = new THREE.TextureLoader().load(
 grassTexture.wrapS = THREE.ClampToEdgeWrapping
 grassTexture.wrapT = THREE.ClampToEdgeWrapping
 
-const fbmColorTexture = new THREE.TextureLoader().load('/textures/fbm-color.png')
+const fbmColorTexture = new THREE.TextureLoader().load(
+	'/textures/fbm-color.png',
+)
 fbmColorTexture.wrapS = THREE.RepeatWrapping
 fbmColorTexture.wrapT = THREE.RepeatWrapping
 
