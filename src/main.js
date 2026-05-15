@@ -132,6 +132,8 @@ const composer = new EffectComposer(renderer)
 composer.addPass(new RenderPass(scene, camera))
 const radialBlurPass = new ShaderPass(radialBlurMaterial, 'tDiffuse')
 composer.addPass(radialBlurPass)
+// const radialBlurPass2 = new ShaderPass(radialBlurMaterial, 'tDiffuse')
+// composer.addPass(radialBlurPass2)
 
 export { radialBlurMaterial }
 

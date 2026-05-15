@@ -71,8 +71,8 @@ export const config = {
 
 	// Radial Blur
 	radialBlurSamples: 25,
-	radialBlurReduce: 0.1,
-	radialBlurStrength: 2.87,
+	radialBlurReduce: 0.25,
+	radialBlurStrength: 2.5,
 	radialBlurColor: '#4e0600',
 	radialBlurColorDistance: 0.65,
 
