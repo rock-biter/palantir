@@ -84,8 +84,8 @@ export const config = {
 	grassPatchThreshold: 0.45,
 	grassHeightMin: 0.8,
 	grassHeightMax: 5,
-	grassWidthMin: 0.35,
-	grassWidthMax: 0.7,
+	grassWidthMin: 0.45,
+	grassWidthMax: 0.9,
 	grassWindFrequency: 0.15,
 	grassWindSpeed: 0.5,
 	grassWindStrength: 5.75,
@@ -109,7 +109,8 @@ export const config = {
 
 	// Shadow Map
 	shadowMaxDist: 40.0,
-	shadowResolution: 256,
-	shadowStrength: 0.5,
-	shadowBias: 0.01,
+	shadowResolution: 256 * 2,
+	shadowStrength: 1.2,
+	shadowBias: 0.0,
+	shadowFalloff: 10.0,
 }

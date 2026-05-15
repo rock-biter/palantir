@@ -145,6 +145,7 @@ export function createGrass() {
 			uShadowMaxDist: { value: config.shadowMaxDist },
 			uShadowStrength: { value: config.shadowStrength },
 			uShadowBias: { value: config.shadowBias },
+			uShadowFalloff: { value: config.shadowFalloff },
 		},
 	})
 

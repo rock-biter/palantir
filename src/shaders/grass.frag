@@ -31,6 +31,7 @@ uniform samplerCube uShadowCubeMap;
 uniform float uShadowMaxDist;
 uniform float uShadowStrength;
 uniform float uShadowBias;
+uniform float uShadowFalloff;
 
 varying float vBladeT;
 varying vec2 vUv;
@@ -104,12 +105,17 @@ void main() {
   vec3 shadowDir = normalize(vPivotWorldPos);
   float shadowStoredDist = texture(uShadowCubeMap, shadowDir).r * uShadowMaxDist;
   float shadowActualDist = length(vPivotWorldPos);
-  float inShadow = step(shadowStoredDist + uShadowBias, shadowActualDist);
-  // Progressive fade: shadow stronger near origin, dissolves toward uShadowMaxDist
-  float shadowDistFade = 1.0 - smoothstep(0.0, uShadowMaxDist * 0.8, shadowActualDist);
-  float shadowFactor = 1.0 - inShadow * shadowDistFade * uShadowStrength;
+  float rawDiff = shadowActualDist - shadowStoredDist;
+  // effectiveBias: at least 10% of falloff to prevent cube-map resolution acne
+  float effectiveBias = max(uShadowBias, uShadowFalloff * 0.1);
+  float t = rawDiff - effectiveBias;
+  // Contact shadow: u*exp(1-u) starts at 0 at shadow boundary (no dark halo),
+  // peaks at u=1 (t = 0.3*falloff inside shadow), then decays exponentially.
+  float u = max(t, 0.0) / (uShadowFalloff * 0.3);
+  float shadowAmount = min(u * exp(1.0 - u), 1.0);
+  float shadowFactor = 1.0 - shadowAmount * uShadowStrength;
 
-  color += trailColor * trail * distFactor * uTrailStrength * (1.0 + sssWeight * 4.5) * shadowFactor;
+  color += trailColor * trail * distFactor * uTrailStrength * (1.0 + sssWeight * 4.5);// * shadowFactor;
 
   // Apply grayscale texture trama to the final blade color
   color *= grassGray;
