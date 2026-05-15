@@ -527,7 +527,7 @@ grassFolder.addBinding(config, 'grassHeightMin', {
 grassFolder.addBinding(config, 'grassHeightMax', {
 	label: 'height max',
 	min: 0.05,
-	max: 3.0,
+	max: 10.0,
 	step: 0.05,
 })
 grassFolder.addBinding(config, 'grassSphereExclusion', {

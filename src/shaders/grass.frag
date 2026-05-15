@@ -5,6 +5,7 @@ precision highp float;
 
 uniform vec3 uColorBase;
 uniform vec3 uColorTip;
+uniform sampler2D uGrassTexture;
 
 // Trail projection
 uniform sampler2D uTrailMap;
@@ -27,11 +28,18 @@ varying vec3 vWorldPos;
 varying float vColorVariation;
 
 void main() {
+	// Sample grass texture: alpha masks the blade shape, grayscale adds surface detail
+  vec4 grassTex = texture2D(uGrassTexture, vUv);
+  if(grassTex.a < 0.1)
+    discard;
+  float grassGray = dot(grassTex.rgb, vec3(0.299, 0.587, 0.114));
+
 	// Vertical gradient from base to tip color
   vec3 color = mix(uColorBase, uColorTip, vBladeT);
 
 	// Ambient occlusion: darker at the base, full brightness at the tip
-  float ao = vBladeT * 0.75 + 0.25;
+  // float ao = vBladeT * 0.75 + 0.25;
+  float ao = pow(vBladeT, 0.5);
   color *= ao;
 
 	// Per-instance chromatic variation: brightness ±uColorVariation, warm hue push on brighter blades
@@ -65,6 +73,9 @@ void main() {
   trailColor = pow(trailColor, vec3(1.0 / 2.0));
 
   color += trailColor * trail * distFactor * uTrailStrength;
+
+  // Apply grayscale texture trama to the final blade color
+  color *= grassGray;
 
   gl_FragColor = vec4(color, 1.0);
 }

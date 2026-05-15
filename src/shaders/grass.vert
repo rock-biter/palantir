@@ -50,7 +50,6 @@ float windFbm(vec2 p) {
 
 void main() {
   vUv = uv;
-  vBladeT = position.y; // normalized height along blade [0 = base, 1 = tip]
 
 	// Instance world XZ (column 3 of the instance matrix = translation)
   vec2 instanceXZ = instanceMatrix[3].xz;
@@ -72,6 +71,9 @@ void main() {
 	// attenuated by normalized blade height so shorter blades oscillate less
   float bladeHeight = length(instanceMatrix[1].xyz);
   float bladeHeightNorm = bladeHeight / uGrassHeightMax;
+
+  vBladeT = position.y * bladeHeightNorm; // normalized height along blade [0 = base, 1 = tip]
+
   float windT = vBladeT * vBladeT * bladeHeightNorm;
   vec2 windUv = instanceXZ * uWindFrequency + vec2(uTime * uWindSpeed, uTime * uWindSpeed * 0.73);
   float wind = (windFbm(windUv) * 2.0 - 1.0) * uWindStrength * windT;

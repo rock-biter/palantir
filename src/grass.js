@@ -5,6 +5,10 @@ import { getTerrainHeightMap, getTerrainHeightRange } from './terrain.js'
 import grassVert from './shaders/grass.vert'
 import grassFrag from './shaders/grass.frag'
 
+const grassTexture = new THREE.TextureLoader().load('/textures/grass/grass.png')
+grassTexture.wrapS = THREE.ClampToEdgeWrapping
+grassTexture.wrapT = THREE.ClampToEdgeWrapping
+
 // ---- CPU-side value noise for patch distribution ----
 
 function hash2D(x, y) {
@@ -125,6 +129,7 @@ export function createGrass() {
 			uGrassFalloffDistance: { value: grassFalloffDistance },
 			uGrassFalloffPower: { value: grassFalloffPower },
 			uColorVariation: { value: grassColorVariation },
+			uGrassTexture: { value: grassTexture },
 		},
 	})
 
@@ -164,10 +169,9 @@ export function createGrass() {
 		if (Math.random() > distDensity) continue
 
 		// Per-blade random dimensions and Y-axis orientation
-		const height =
-			grassHeightMin + Math.random() * (grassHeightMax - grassHeightMin)
-		const width =
-			grassWidthMin + Math.random() * (grassWidthMax - grassWidthMin)
+		const hRand = Math.random()
+		const height = grassHeightMin + hRand * (grassHeightMax - grassHeightMin)
+		const width = grassWidthMin + hRand * 0.5 * (grassWidthMax - grassWidthMin)
 		const rotY = Math.random() * Math.PI * 2
 
 		dummy.position.set(x, 0, z)
