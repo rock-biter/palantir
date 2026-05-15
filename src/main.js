@@ -6,13 +6,20 @@ import { EffectComposer, RenderPass, ShaderPass } from 'postprocessing'
 import { scene, renderer, camera, sizes } from './renderer.js'
 import { sphere, sphereMaterial, cubeCamera } from './sphere.js'
 import { updateTrail } from './trail.js'
-import { createTerrain, getTerrainMesh } from './terrain.js'
+import {
+	createTerrain,
+	getTerrainMesh,
+	getTerrainHeightMap,
+} from './terrain.js'
+import { createGrass, getGrassMesh, updateGrassTime } from './grass.js'
 import { createBgTerrain, getBgTerrainMesh } from './bgTerrain.js'
 import { createBgPlane } from './bgPlane.js'
 import {
 	setOnTerrainChange,
 	setRadialBlurMaterial,
 	setOnBgTerrainChange,
+	setHeightMapQuad,
+	setOnGrassChange,
 } from './gui.js'
 import { config } from './config.js'
 
@@ -65,6 +72,55 @@ function rebuildTerrain() {
 }
 rebuildTerrain()
 setOnTerrainChange(rebuildTerrain)
+
+// --- DEBUG: visualize terrain heightmap texture ---
+const _debugHeightmapMat = new THREE.ShaderMaterial({
+	uniforms: { uMap: { value: null } },
+	vertexShader: /* glsl */ `
+		varying vec2 vUv;
+		void main() {
+			vUv = uv;
+			gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+		}
+	`,
+	fragmentShader: /* glsl */ `
+		uniform sampler2D uMap;
+		varying vec2 vUv;
+		void main() {
+			vec4 s = texture2D(uMap, vUv);
+			// r=x, g=y(height), b=z – already normalized [0,1]
+			gl_FragColor = vec4(s.r, s.g, s.b, 1.0);
+		}
+	`,
+	side: THREE.DoubleSide,
+})
+const _debugHeightmapQuad = new THREE.Mesh(
+	new THREE.PlaneGeometry(12, 12),
+	_debugHeightmapMat,
+)
+_debugHeightmapQuad.position.set(0, 10, -18)
+_debugHeightmapQuad.visible = false
+scene.add(_debugHeightmapQuad)
+setHeightMapQuad(_debugHeightmapQuad)
+
+function _updateDebugHeightmap() {
+	_debugHeightmapMat.uniforms.uMap.value = getTerrainHeightMap()
+}
+_updateDebugHeightmap()
+setOnTerrainChange(() => {
+	rebuildTerrain()
+	_updateDebugHeightmap()
+	rebuildGrass()
+})
+
+function rebuildGrass() {
+	const oldGrass = getGrassMesh()
+	if (oldGrass) scene.remove(oldGrass)
+	const newGrass = createGrass()
+	scene.add(newGrass)
+}
+rebuildGrass()
+setOnGrassChange(rebuildGrass)
 
 function rebuildBgTerrain() {
 	const oldMesh = getBgTerrainMesh()
@@ -174,12 +230,17 @@ const clock = new THREE.Clock()
 function tic() {
 	controls.update()
 
+	const elapsedTime = clock.getElapsedTime()
+
 	const { trail: trailTexture, blurred: trailBlurred } = updateTrail(
 		renderer,
 		hitPointNormalized,
 		isHitting,
-		clock.getElapsedTime(),
+		elapsedTime,
 	)
+
+	// Animate grass wind
+	updateGrassTime(elapsedTime)
 	// trailTexture.wrapS = THREE.RepeatWrapping
 	// trailTexture.wrapT = THREE.RepeatWrapping
 	sphereMaterial.uniforms.uTrailMap.value = trailTexture
@@ -189,6 +250,13 @@ function tic() {
 	if (terrain) {
 		terrain.material.uniforms.uTrailMap.value = trailTexture
 		terrain.material.uniforms.uTrailMapBlurred.value = trailBlurred
+	}
+
+	// Project trail onto grass
+	const grass = getGrassMesh()
+	if (grass) {
+		grass.material.uniforms.uTrailMap.value = trailTexture
+		grass.material.uniforms.uTrailMapBlurred.value = trailBlurred
 	}
 
 	// Update cube camera for reflections

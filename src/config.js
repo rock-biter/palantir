@@ -36,7 +36,7 @@ export const config = {
 	terrainTexScale: 3.0,
 	terrainTexOffsetX: 0.0,
 	terrainTexOffsetY: 0.0,
-	trailMaxDist: 15.0,
+	trailMaxDist: 25.0,
 	trailFalloffCurve: 3.6,
 	trailBlur: 2.0,
 	chromaShift: 0.035,
@@ -75,6 +75,27 @@ export const config = {
 	radialBlurStrength: 2.5,
 	radialBlurColor: '#4e0600',
 	radialBlurColorDistance: 0.65,
+
+	// Grass
+	grassCount: 20000,
+	grassPatchFrequency: 0.2,
+	grassPatchThreshold: 0.45,
+	grassHeightMin: 0.3,
+	grassHeightMax: 5,
+	grassWidthMin: 0.4,
+	grassWidthMax: 1.5,
+	grassWindFrequency: 0.15,
+	grassWindSpeed: 0.5,
+	grassWindStrength: 5.75,
+	grassSphereExclusion: 0,
+	grassOuterRadiusFactor: 1.5,
+	grassColorBase: '#813700',
+	grassColorTip: '#b95724',
+	grassTrailStrength: 3.0,
+	grassFalloffDistance: 50.0,
+	grassFalloffPower: 1.0,
+	grassColorVariation: 0.55, // Debug
+	showHeightMap: false,
 
 	// Background Plane (reference image)
 	bgPlaneVisible: false,
