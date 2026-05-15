@@ -88,6 +88,7 @@ function fbm(x, y, octaves, frequency, lacunarity, gain) {
 
 let terrainMesh = null
 let terrainHeightMap = null
+let terrainHeightRange = { minH: 0, maxH: 1 }
 
 export function createTerrain() {
 	const {
@@ -183,6 +184,7 @@ export function createTerrain() {
 			if (h > maxH) maxH = h
 		}
 		const rangeH = maxH - minH || 1
+		terrainHeightRange = { minH, maxH }
 
 		// PlaneGeometry vertices are row-major: index = row * size + col
 		// DataTexture row 0 = bottom of texture; PlaneGeometry row 0 = far-Z edge.
@@ -267,4 +269,8 @@ export function getTerrainMesh() {
 
 export function getTerrainHeightMap() {
 	return terrainHeightMap
+}
+
+export function getTerrainHeightRange() {
+	return terrainHeightRange
 }

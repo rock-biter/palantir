@@ -4,6 +4,7 @@ import { diffusionMaterial } from './trail.js'
 import { sphereMaterial, rebuildSphere, rebuildCubeCamera } from './sphere.js'
 import { getTerrainMesh } from './terrain.js'
 import { applyBgPlaneConfig } from './bgPlane.js'
+import { getGrassMesh } from './grass.js'
 
 export const pane = new Pane()
 
@@ -479,3 +480,126 @@ trailFolder.on('change', () => {
 terrainFolder.on('change', () => {
 	if (onTerrainChange) onTerrainChange()
 })
+
+// --- Grass folder ---
+
+let onGrassChange = null
+
+// These keys update uniforms live without needing a full geometry rebuild
+const GRASS_LIVE_KEYS = new Set([
+	'grassWindFrequency',
+	'grassWindSpeed',
+	'grassWindStrength',
+	'grassColorBase',
+	'grassColorTip',
+	'grassTrailStrength',
+	'grassFalloffDistance',
+	'grassFalloffPower',
+])
+
+const grassFolder = pane.addFolder({ title: 'Grass', expanded: false })
+
+grassFolder.addBinding(config, 'grassCount', {
+	label: 'count',
+	min: 1000,
+	max: 100000,
+	step: 1000,
+})
+grassFolder.addBinding(config, 'grassPatchFrequency', {
+	label: 'patch frequency',
+	min: 0.01,
+	max: 1.0,
+	step: 0.01,
+})
+grassFolder.addBinding(config, 'grassPatchThreshold', {
+	label: 'patch threshold',
+	min: 0.0,
+	max: 0.9,
+	step: 0.01,
+})
+grassFolder.addBinding(config, 'grassHeightMin', {
+	label: 'height min',
+	min: 0.05,
+	max: 3.0,
+	step: 0.05,
+})
+grassFolder.addBinding(config, 'grassHeightMax', {
+	label: 'height max',
+	min: 0.05,
+	max: 3.0,
+	step: 0.05,
+})
+grassFolder.addBinding(config, 'grassSphereExclusion', {
+	label: 'sphere exclusion',
+	min: 0.5,
+	max: 10.0,
+	step: 0.1,
+})
+grassFolder.addBinding(config, 'grassOuterRadiusFactor', {
+	label: 'outer radius',
+	min: 0.1,
+	max: 5.0,
+	step: 0.01,
+})
+grassFolder.addBinding(config, 'grassColorBase', { label: 'color base' })
+grassFolder.addBinding(config, 'grassColorTip', { label: 'color tip' })
+grassFolder.addBinding(config, 'grassTrailStrength', {
+	label: 'trail strength',
+	min: 0.0,
+	max: 20.0,
+	step: 0.1,
+})
+grassFolder.addBinding(config, 'grassFalloffDistance', {
+	label: 'falloff distance',
+	min: 1.0,
+	max: 50.0,
+	step: 0.5,
+})
+grassFolder.addBinding(config, 'grassFalloffPower', {
+	label: 'falloff power',
+	min: 0.1,
+	max: 5.0,
+	step: 0.1,
+})
+grassFolder.addBinding(config, 'grassWindFrequency', {
+	label: 'wind frequency',
+	min: 0.05,
+	max: 2.0,
+	step: 0.05,
+})
+grassFolder.addBinding(config, 'grassWindSpeed', {
+	label: 'wind speed',
+	min: 0.0,
+	max: 3.0,
+	step: 0.05,
+})
+grassFolder.addBinding(config, 'grassWindStrength', {
+	label: 'wind strength',
+	min: 0.0,
+	max: 10,
+	step: 0.01,
+})
+
+grassFolder.on('change', (ev) => {
+	// Always push live params to uniforms
+	const g = getGrassMesh()
+	if (g) {
+		g.material.uniforms.uWindFrequency.value = config.grassWindFrequency
+		g.material.uniforms.uWindSpeed.value = config.grassWindSpeed
+		g.material.uniforms.uWindStrength.value = config.grassWindStrength
+		g.material.uniforms.uColorBase.value.set(config.grassColorBase)
+		g.material.uniforms.uColorTip.value.set(config.grassColorTip)
+		g.material.uniforms.uTrailStrength.value = config.grassTrailStrength
+		g.material.uniforms.uGrassFalloffDistance.value =
+			config.grassFalloffDistance
+		g.material.uniforms.uGrassFalloffPower.value = config.grassFalloffPower
+	}
+	// Structural params require a full geometry rebuild
+	if (!GRASS_LIVE_KEYS.has(ev.presetKey) && onGrassChange) {
+		onGrassChange()
+	}
+})
+
+export function setOnGrassChange(cb) {
+	onGrassChange = cb
+}

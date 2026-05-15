@@ -11,6 +11,7 @@ import {
 	getTerrainMesh,
 	getTerrainHeightMap,
 } from './terrain.js'
+import { createGrass, getGrassMesh, updateGrassTime } from './grass.js'
 import { createBgTerrain, getBgTerrainMesh } from './bgTerrain.js'
 import { createBgPlane } from './bgPlane.js'
 import {
@@ -18,6 +19,7 @@ import {
 	setRadialBlurMaterial,
 	setOnBgTerrainChange,
 	setHeightMapQuad,
+	setOnGrassChange,
 } from './gui.js'
 import { config } from './config.js'
 
@@ -108,7 +110,17 @@ _updateDebugHeightmap()
 setOnTerrainChange(() => {
 	rebuildTerrain()
 	_updateDebugHeightmap()
+	rebuildGrass()
 })
+
+function rebuildGrass() {
+	const oldGrass = getGrassMesh()
+	if (oldGrass) scene.remove(oldGrass)
+	const newGrass = createGrass()
+	scene.add(newGrass)
+}
+rebuildGrass()
+setOnGrassChange(rebuildGrass)
 
 function rebuildBgTerrain() {
 	const oldMesh = getBgTerrainMesh()
@@ -218,12 +230,17 @@ const clock = new THREE.Clock()
 function tic() {
 	controls.update()
 
+	const elapsedTime = clock.getElapsedTime()
+
 	const { trail: trailTexture, blurred: trailBlurred } = updateTrail(
 		renderer,
 		hitPointNormalized,
 		isHitting,
-		clock.getElapsedTime(),
+		elapsedTime,
 	)
+
+	// Animate grass wind
+	updateGrassTime(elapsedTime)
 	// trailTexture.wrapS = THREE.RepeatWrapping
 	// trailTexture.wrapT = THREE.RepeatWrapping
 	sphereMaterial.uniforms.uTrailMap.value = trailTexture
@@ -233,6 +250,13 @@ function tic() {
 	if (terrain) {
 		terrain.material.uniforms.uTrailMap.value = trailTexture
 		terrain.material.uniforms.uTrailMapBlurred.value = trailBlurred
+	}
+
+	// Project trail onto grass
+	const grass = getGrassMesh()
+	if (grass) {
+		grass.material.uniforms.uTrailMap.value = trailTexture
+		grass.material.uniforms.uTrailMapBlurred.value = trailBlurred
 	}
 
 	// Update cube camera for reflections
