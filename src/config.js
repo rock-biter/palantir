@@ -70,7 +70,7 @@ export const config = {
 	reflectionIntensity: 2,
 
 	// Radial Blur
-	radialBlurSamples: 80,
+	radialBlurSamples: 25,
 	radialBlurReduce: 0.1,
 	radialBlurStrength: 2.87,
 	radialBlurColor: '#4e0600',
