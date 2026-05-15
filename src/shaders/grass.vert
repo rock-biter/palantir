@@ -74,7 +74,7 @@ void main() {
 
   vBladeT = position.y * bladeHeightNorm; // normalized height along blade [0 = base, 1 = tip]
 
-  float windT = vBladeT * vBladeT * bladeHeightNorm;
+  float windT = pow(vBladeT, 1.5) * bladeHeightNorm;
   vec2 windUv = instanceXZ * uWindFrequency + vec2(uTime * uWindSpeed, uTime * uWindSpeed * 0.73);
   float wind = (windFbm(windUv) * 2.0 - 1.0) * uWindStrength * windT;
   worldPos.x += wind;

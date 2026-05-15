@@ -34,6 +34,12 @@ void main() {
     discard;
   float grassGray = dot(grassTex.rgb, vec3(0.299, 0.587, 0.114));
 
+  // High-contrast version for SSS approximation: crush darks (veins), boost lights (thin blade areas)
+  float sssContrast = 1.0 - pow(clamp(grassGray * 2.2 - 0.6, 0.0, 1.0), 10.0);
+  // Edge factor: stronger at horizontal blade edges, fades to zero at center
+  float sssEdge = pow(abs(vUv.x - 0.5) * 2.0, 0.4);
+  float sssWeight = sssContrast * sssEdge;
+
 	// Vertical gradient from base to tip color
   vec3 color = mix(uColorBase, uColorTip, vBladeT);
 
@@ -72,7 +78,7 @@ void main() {
   vec3 trailColor = pow(uTrailColorMid, vec3(2.2));
   trailColor = pow(trailColor, vec3(1.0 / 2.0));
 
-  color += trailColor * trail * distFactor * uTrailStrength;
+  color += trailColor * trail * distFactor * uTrailStrength * (1.0 + sssWeight * 10.5);
 
   // Apply grayscale texture trama to the final blade color
   color *= grassGray;
