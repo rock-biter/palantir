@@ -135,7 +135,11 @@ export function createGrass() {
 
 	let count = 0
 
-	for (let attempt = 0; attempt < maxAttempts && count < grassCount; attempt++) {
+	for (
+		let attempt = 0;
+		attempt < maxAttempts && count < grassCount;
+		attempt++
+	) {
 		const x = (Math.random() * 2 - 1) * outerRadius
 		const z = (Math.random() * 2 - 1) * outerRadius
 		const r = Math.sqrt(x * x + z * z)
