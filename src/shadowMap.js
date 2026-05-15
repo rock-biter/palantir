@@ -44,7 +44,10 @@ export function rebuildTerrainShadowMesh(terrainMesh) {
 	}
 	if (!terrainMesh) return
 
-	terrainShadowMesh = new THREE.Mesh(terrainMesh.geometry, terrainShadowMaterial)
+	terrainShadowMesh = new THREE.Mesh(
+		terrainMesh.geometry,
+		terrainShadowMaterial,
+	)
 	// Copy world transform so the shadow mesh sits at the same position as the real terrain
 	terrainMesh.updateWorldMatrix(true, false)
 	terrainShadowMesh.matrix.copy(terrainMesh.matrixWorld)
