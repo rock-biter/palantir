@@ -12,6 +12,7 @@ uniform sampler2D uRoughMap;
 uniform float uTexScale;
 uniform vec2 uTexOffset;
 uniform sampler2D uTrailMap;
+uniform sampler2D uTrailMapBlurred;
 uniform vec3 uTrailColorCore;
 uniform vec3 uTrailColorMid;
 uniform vec3 uTrailColorEdge;
@@ -96,9 +97,8 @@ void main() {
   float distFactor = 1.0 - clamp(distToCenter / uTrailMaxDist, 0.0, 1.0);
   distFactor = pow(distFactor, uTrailFalloffCurve);
 
-  // Sample trail with mipmap blur (blend two LOD levels for soft projection)
-  float lod0 = uTrailBlur;
-  float lod1 = uTrailBlur + 2.0;
+  // Sample trail — sharp from raw texture, blurred from Kawase pre-pass
+  // (avoids mipmap seam at the spherical U=0/1 wrap boundary)
   float mixBlur = smoothstep(0.0, uTrailMaxDist, distToCenter);
 
   // Chromatic aberration: offset phi for R and B channels
@@ -108,15 +108,15 @@ void main() {
   vec2 trailUV_B = vec2(phiOffsetB / (2.0 * 3.14159265) + 0.5, 1.0 - theta / 3.14159265);
 
   float trailR_sharp = textureLod(uTrailMap, trailUV_R, 0.0).r;
-  float trailR_blur = textureLod(uTrailMap, trailUV_R, lod1).r;
+  float trailR_blur = texture2D(uTrailMapBlurred, trailUV_R).r;
   float trailR = mix(trailR_sharp, trailR_blur, mixBlur);
 
   float trailG_sharp = textureLod(uTrailMap, trailUV, 0.0).r;
-  float trailG_blur = textureLod(uTrailMap, trailUV, lod1).r;
+  float trailG_blur = texture2D(uTrailMapBlurred, trailUV).r;
   float trailG = mix(trailG_sharp, trailG_blur, mixBlur);
 
   float trailB_sharp = textureLod(uTrailMap, trailUV_B, 0.0).r;
-  float trailB_blur = textureLod(uTrailMap, trailUV_B, lod1).r;
+  float trailB_blur = texture2D(uTrailMapBlurred, trailUV_B).r;
   float trailB = mix(trailB_sharp, trailB_blur, mixBlur);
 
   float trail = trailG; // use green channel as main intensity

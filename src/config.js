@@ -1,6 +1,6 @@
 export const config = {
 	// Trail
-	brushSize: 0.2,
+	brushSize: 0.3,
 	brushStrength: 0.5,
 	diffusion: 0.13,
 	decay: 0.96,

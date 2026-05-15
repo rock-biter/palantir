@@ -189,6 +189,7 @@ export function createTerrain() {
 				),
 			},
 			uTrailMap: { value: null },
+			uTrailMapBlurred: { value: null },
 			uTrailColorCore: { value: new THREE.Color(config.trailColorCore) },
 			uTrailColorMid: { value: new THREE.Color(config.trailColorMid) },
 			uTrailColorEdge: { value: new THREE.Color(config.trailColorEdge) },
