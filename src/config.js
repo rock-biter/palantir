@@ -69,12 +69,15 @@ export const config = {
 	fresnelExponent: 1.25,
 	reflectionIntensity: 2,
 
-	// Radial Blur
-	radialBlurSamples: 80,
-	radialBlurReduce: 0.1,
-	radialBlurStrength: 2.87,
-	radialBlurColor: '#4e0600',
-	radialBlurColorDistance: 0.65,
+	// Linear Blur
+	linearBlurStrength: 2.87,
+	linearBlurColor: '#4e0600',
+	linearBlurColorDistance: 0.65,
+	linearBlurColorDistanceIncrement: 0.08,
+	linearBlurScale: 0.25,
+	linearBlurLevels: 4,
+	linearBlurSamples: 10,
+	linearBlurUpsampleBlend: 0.85,
 
 	// Background Plane (reference image)
 	bgPlaneVisible: false,

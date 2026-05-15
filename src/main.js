@@ -1,7 +1,6 @@
 import './style.css'
 import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
-import { EffectComposer, RenderPass, ShaderPass } from 'postprocessing'
 
 import { scene, renderer, camera, sizes } from './renderer.js'
 import { sphere, sphereMaterial, cubeCamera } from './sphere.js'
@@ -11,13 +10,14 @@ import { createBgTerrain, getBgTerrainMesh } from './bgTerrain.js'
 import { createBgPlane } from './bgPlane.js'
 import {
 	setOnTerrainChange,
-	setRadialBlurMaterial,
+	setLinearBlurEffect,
 	setOnBgTerrainChange,
 } from './gui.js'
 import { config } from './config.js'
+import { LinearBlur } from './linearBlur.js'
 
-import radialBlurVert from './shaders/radial-blur.vert'
-import radialBlurFrag from './shaders/radial-blur.frag'
+import kawaseBlurVert from './shaders/kawase-blur.vert'
+import linearCompositeFrag from './shaders/linear-composite.frag'
 import sphereVert from './shaders/sphere.vert'
 import sphereMaskFrag from './shaders/sphere-mask.frag'
 
@@ -105,38 +105,48 @@ const maskRT = new THREE.WebGLRenderTarget(sizes.width, sizes.height, {
 })
 
 /**
- * Post-processing: EffectComposer + radial blur ShaderPass
+ * Post-processing: scene RT + LinearBlur + composite pass
  */
-const resolution = new THREE.Vector2()
-renderer.getDrawingBufferSize(resolution)
-
-const radialBlurMaterial = new THREE.ShaderMaterial({
-	vertexShader: radialBlurVert,
-	fragmentShader: radialBlurFrag,
-	uniforms: {
-		tDiffuse: { value: null },
-		uMaskTexture: { value: maskRT.texture },
-		uResolution: { value: resolution },
-		uSamples: { value: config.radialBlurSamples },
-		uReduce: { value: config.radialBlurReduce },
-		uStrength: { value: config.radialBlurStrength },
-		uColor: { value: new THREE.Color(config.radialBlurColor) },
-		uColorDistance: { value: config.radialBlurColorDistance },
-		uCenter: { value: new THREE.Vector3(0, 0, 0) },
-		uProjectionMatrix: { value: new THREE.Matrix4() },
-		uViewMatrix: { value: new THREE.Matrix4() },
-	},
+const sceneRT = new THREE.WebGLRenderTarget(sizes.width, sizes.height, {
+	minFilter: THREE.LinearFilter,
+	magFilter: THREE.LinearFilter,
+	format: THREE.RGBAFormat,
+	type: THREE.HalfFloatType,
+	depthBuffer: true,
 })
 
-const composer = new EffectComposer(renderer)
-composer.addPass(new RenderPass(scene, camera))
-const radialBlurPass = new ShaderPass(radialBlurMaterial, 'tDiffuse')
-composer.addPass(radialBlurPass)
+const linearBlur = new LinearBlur(sizes.width, sizes.height, {
+	levels: config.linearBlurLevels,
+	resolutionScale: config.linearBlurScale,
+	samples: config.linearBlurSamples,
+	color: new THREE.Color(config.linearBlurColor),
+	colorDistance: config.linearBlurColorDistance,
+	colorDistanceIncrement: config.linearBlurColorDistanceIncrement,
+	upsampleBlend: config.linearBlurUpsampleBlend,
+})
 
-export { radialBlurMaterial }
+const compositeMaterial = new THREE.ShaderMaterial({
+	vertexShader: kawaseBlurVert,
+	fragmentShader: linearCompositeFrag,
+	uniforms: {
+		uScene: { value: sceneRT.texture },
+		uBlurred: { value: null },
+		uStrength: { value: config.linearBlurStrength },
+	},
+	depthTest: false,
+	depthWrite: false,
+})
+const compositeCamera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1)
+const compositeScene = new THREE.Scene()
+compositeScene.add(
+	new THREE.Mesh(new THREE.PlaneGeometry(2, 2), compositeMaterial),
+)
 
-// Connect GUI to radial blur material
-setRadialBlurMaterial(radialBlurMaterial)
+// Connect GUI
+setLinearBlurEffect(linearBlur, compositeMaterial, sizes)
+
+// Reusable vector for sphere-centre UV projection
+const _sphereNDC = new THREE.Vector3()
 
 /**
  * Raycasting
@@ -205,14 +215,27 @@ function tic() {
 	renderer.render(maskScene, camera)
 	renderer.setRenderTarget(null)
 
-	// Update radial blur uniforms
-	radialBlurMaterial.uniforms.uProjectionMatrix.value.copy(
-		camera.projectionMatrix,
-	)
-	radialBlurMaterial.uniforms.uViewMatrix.value.copy(camera.matrixWorldInverse)
+	// 1. Render main scene to sceneRT (linear, no tonemapping yet)
+	renderer.setRenderTarget(sceneRT)
+	renderer.clear()
+	renderer.render(scene, camera)
+	renderer.setRenderTarget(null)
 
-	// Render scene via composer (RenderPass + radial blur)
-	composer.render()
+	// 2. Linear blur passes (downsampled, radial colour-masked)
+	// Project sphere centre (world origin) to UV space for the radial direction
+	_sphereNDC.set(0, 0, 0).project(camera)
+	linearBlur.center.set(_sphereNDC.x * 0.5 + 0.5, _sphereNDC.y * 0.5 + 0.5)
+	const blurredTex = linearBlur.render(
+		renderer,
+		sceneRT.texture,
+		maskRT.texture,
+	)
+
+	// 3. Composite: scene + blurred glow → canvas (with tonemapping)
+	compositeMaterial.uniforms.uBlurred.value = blurredTex
+	renderer.setRenderTarget(null)
+	renderer.clear()
+	renderer.render(compositeScene, compositeCamera)
 
 	requestAnimationFrame(tic)
 }
@@ -224,6 +247,6 @@ requestAnimationFrame(tic)
  */
 window.addEventListener('resize', () => {
 	maskRT.setSize(sizes.width, sizes.height)
-	composer.setSize(sizes.width, sizes.height)
-	renderer.getDrawingBufferSize(resolution)
+	sceneRT.setSize(sizes.width, sizes.height)
+	linearBlur.setSize(sizes.width, sizes.height)
 })

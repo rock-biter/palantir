@@ -228,54 +228,87 @@ trailLightFolder.on('change', () => {
 	}
 })
 
-// --- Radial Blur folder ---
-let radialBlurMaterialRef = null
+// --- Linear Blur folder ---
+let linearBlurRef = null
+let compositeMaterialRef = null
+let linearBlurSizes = null
 
-const radialBlurFolder = pane.addFolder({
-	title: 'Radial Blur',
+const linearBlurFolder = pane.addFolder({
+	title: 'Linear Blur',
 	expanded: false,
 })
-radialBlurFolder.addBinding(config, 'radialBlurSamples', {
-	label: 'samples',
-	min: 1,
-	max: 160,
-	step: 1,
-})
-radialBlurFolder.addBinding(config, 'radialBlurReduce', {
-	label: 'reduce',
-	min: 0.01,
-	max: 1.0,
-	step: 0.01,
-})
-radialBlurFolder.addBinding(config, 'radialBlurStrength', {
+linearBlurFolder.addBinding(config, 'linearBlurStrength', {
 	label: 'strength',
 	min: 0.0,
-	max: 3.0,
+	max: 6.0,
 	step: 0.01,
 })
-radialBlurFolder.addBinding(config, 'radialBlurColor', {
+linearBlurFolder.addBinding(config, 'linearBlurColor', {
 	label: 'color',
 })
-radialBlurFolder.addBinding(config, 'radialBlurColorDistance', {
+linearBlurFolder.addBinding(config, 'linearBlurColorDistance', {
 	label: 'color distance',
 	min: 0.0,
 	max: 10.0,
 	step: 0.01,
 })
+linearBlurFolder.addBinding(config, 'linearBlurColorDistanceIncrement', {
+	label: 'color dist. step',
+	min: 0.0,
+	max: 1.0,
+	step: 0.005,
+})
+linearBlurFolder.addBinding(config, 'linearBlurScale', {
+	label: 'resolution scale',
+	min: 0.05,
+	max: 1.0,
+	step: 0.05,
+})
+linearBlurFolder.addBinding(config, 'linearBlurLevels', {
+	label: 'levels',
+	min: 1,
+	max: 8,
+	step: 1,
+})
+linearBlurFolder.addBinding(config, 'linearBlurSamples', {
+	label: 'samples',
+	min: 1,
+	max: 64,
+	step: 1,
+})
+linearBlurFolder.addBinding(config, 'linearBlurUpsampleBlend', {
+	label: 'upsample blend',
+	min: 0.0,
+	max: 1.0,
+	step: 0.01,
+})
 
-radialBlurFolder.on('change', () => {
-	if (radialBlurMaterialRef) {
-		radialBlurMaterialRef.uniforms.uSamples.value = config.radialBlurSamples
-		radialBlurMaterialRef.uniforms.uReduce.value = config.radialBlurReduce
-		radialBlurMaterialRef.uniforms.uStrength.value = config.radialBlurStrength
-		radialBlurMaterialRef.uniforms.uColor.value.set(config.radialBlurColor)
-		radialBlurMaterialRef.uniforms.uColorDistance.value =
-			config.radialBlurColorDistance
+linearBlurFolder.on('change', () => {
+	if (!linearBlurRef || !compositeMaterialRef) return
+
+	compositeMaterialRef.uniforms.uStrength.value = config.linearBlurStrength
+	linearBlurRef._blurMat.uniforms.uColor.value.set(config.linearBlurColor)
+	linearBlurRef.colorDistance = config.linearBlurColorDistance
+	linearBlurRef.colorDistanceIncrement = config.linearBlurColorDistanceIncrement
+	linearBlurRef.upsampleBlend = config.linearBlurUpsampleBlend
+	linearBlurRef.numSamples = config.linearBlurSamples
+
+	// Levels or scale change → rebuild RTs at current window size
+	const levelsChanged = linearBlurRef.numLevels !== config.linearBlurLevels
+	const scaleChanged = linearBlurRef.resolutionScale !== config.linearBlurScale
+	if (levelsChanged || scaleChanged) {
+		linearBlurRef.numLevels = config.linearBlurLevels
+		linearBlurRef.resolutionScale = config.linearBlurScale
+		if (linearBlurSizes) {
+			linearBlurRef.setSize(linearBlurSizes.width, linearBlurSizes.height)
+		}
 	}
 })
 
-export function setRadialBlurMaterial(mat) {
-	radialBlurMaterialRef = mat
+export function setLinearBlurEffect(linearBlur, compositeMaterial, sizes) {
+	linearBlurRef = linearBlur
+	compositeMaterialRef = compositeMaterial
+	linearBlurSizes = sizes
 }
 
 export function setOnTerrainChange(cb) {
