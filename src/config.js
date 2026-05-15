@@ -106,4 +106,10 @@ export const config = {
 	bgPlaneScale: 20,
 	bgPlaneY: 0,
 	bgPlaneZ: 0,
+
+	// Shadow Map
+	shadowMaxDist: 40.0,
+	shadowResolution: 256,
+	shadowStrength: 0.5,
+	shadowBias: 0.01,
 }

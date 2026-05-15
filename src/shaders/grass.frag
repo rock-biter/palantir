@@ -26,6 +26,12 @@ uniform float uGrassFalloffPower;
 // Per-instance chromatic variation
 uniform float uColorVariation;
 
+// Omnidirectional shadow from sphere center
+uniform samplerCube uShadowCubeMap;
+uniform float uShadowMaxDist;
+uniform float uShadowStrength;
+uniform float uShadowBias;
+
 varying float vBladeT;
 varying vec2 vUv;
 varying vec3 vWorldPos;
@@ -93,7 +99,17 @@ void main() {
   vec3 trailColor = pow(uTrailColorMid, vec3(2.2));
   trailColor = pow(trailColor, vec3(1.0 / 2.0));
 
-  color += trailColor * trail * distFactor * uTrailStrength * (1.0 + sssWeight * 4.5);
+  // Omnidirectional shadow: attenuates trail light where blocked
+  // Use pivot (base) so the whole blade shares one shadow value, avoiding acne on thin geometry
+  vec3 shadowDir = normalize(vPivotWorldPos);
+  float shadowStoredDist = texture(uShadowCubeMap, shadowDir).r * uShadowMaxDist;
+  float shadowActualDist = length(vPivotWorldPos);
+  float inShadow = step(shadowStoredDist + uShadowBias, shadowActualDist);
+  // Progressive fade: shadow stronger near origin, dissolves toward uShadowMaxDist
+  float shadowDistFade = 1.0 - smoothstep(0.0, uShadowMaxDist * 0.8, shadowActualDist);
+  float shadowFactor = 1.0 - inShadow * shadowDistFade * uShadowStrength;
+
+  color += trailColor * trail * distFactor * uTrailStrength * (1.0 + sssWeight * 4.5) * shadowFactor;
 
   // Apply grayscale texture trama to the final blade color
   color *= grassGray;

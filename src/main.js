@@ -22,6 +22,12 @@ import {
 	setOnGrassChange,
 } from './gui.js'
 import { config } from './config.js'
+import {
+	updateShadowMap,
+	rebuildTerrainShadowMesh,
+	rebuildGrassShadowMesh,
+	shadowCubeTexture,
+} from './shadowMap.js'
 
 import radialBlurVert from './shaders/radial-blur.vert'
 import radialBlurFrag from './shaders/radial-blur.frag'
@@ -69,6 +75,8 @@ function rebuildTerrain() {
 	if (oldMesh) scene.remove(oldMesh)
 	const newMesh = createTerrain()
 	scene.add(newMesh)
+	rebuildTerrainShadowMesh(newMesh)
+	newMesh.material.uniforms.uShadowCubeMap.value = shadowCubeTexture
 }
 rebuildTerrain()
 setOnTerrainChange(rebuildTerrain)
@@ -118,6 +126,8 @@ function rebuildGrass() {
 	if (oldGrass) scene.remove(oldGrass)
 	const newGrass = createGrass()
 	scene.add(newGrass)
+	rebuildGrassShadowMesh(newGrass)
+	newGrass.material.uniforms.uShadowCubeMap.value = shadowCubeTexture
 }
 rebuildGrass()
 setOnGrassChange(rebuildGrass)
@@ -241,8 +251,10 @@ function tic() {
 
 	// Animate grass wind
 	updateGrassTime(elapsedTime)
-	// trailTexture.wrapS = THREE.RepeatWrapping
-	// trailTexture.wrapT = THREE.RepeatWrapping
+
+	// Render shadow cube map from sphere center (before reflections and main pass)
+	updateShadowMap(renderer)
+
 	sphereMaterial.uniforms.uTrailMap.value = trailTexture
 
 	// Project trail onto terrain

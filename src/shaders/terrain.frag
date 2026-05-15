@@ -23,6 +23,11 @@ uniform float uChromaShift;
 uniform float uBrightnessStart;
 uniform float uBrightnessMult;
 
+uniform samplerCube uShadowCubeMap;
+uniform float uShadowMaxDist;
+uniform float uShadowStrength;
+uniform float uShadowBias;
+
 varying vec2 vUv;
 varying vec3 vWorldPosition;
 varying vec3 vNormal;
@@ -139,9 +144,19 @@ void main() {
   vec3 toCenter = normalize(-vWorldPosition);
   float trailIntensity = max(dot(N, toCenter), 0.0);
 
+  // Omnidirectional shadow: attenuates the trail light where blocked
+  // Computed before trail addition so it multiplies only the light contribution
+  vec3 shadowDir = normalize(vWorldPosition);
+  float shadowStoredDist = texture(uShadowCubeMap, shadowDir).r * uShadowMaxDist;
+  float shadowActualDist = length(vWorldPosition);
+  float inShadow = step(shadowStoredDist + uShadowBias, shadowActualDist);
+  // Progressive fade: shadow stronger near origin, dissolves toward uShadowMaxDist
+  float shadowDistFade = 1.0 - smoothstep(0.0, uShadowMaxDist * 0.8, shadowActualDist);
+  float shadowFactor = 1.0 - inShadow * shadowDistFade * uShadowStrength;
+
   // Apply chromatic aberration per channel
   vec3 trailRGB = vec3(trailR, trailG, trailB);
-  color += trailColor * trailRGB * trailIntensity * distFactor * 6.;
+  color += trailColor * trailRGB * trailIntensity * distFactor * 6. * shadowFactor;
 
   // Radial brightness attenuation: fades from 1.0 at center to uBrightnessMult at edges
   float bDist = length(vUv - 0.5) * 2.0;
