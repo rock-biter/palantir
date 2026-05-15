@@ -88,6 +88,7 @@ export function createGrass() {
 		grassTrailStrength,
 		grassFalloffDistance,
 		grassFalloffPower,
+		grassColorVariation,
 		trailMaxDist,
 		trailFalloffCurve,
 		trailColorMid,
@@ -122,6 +123,7 @@ export function createGrass() {
 			uTrailStrength: { value: grassTrailStrength },
 			uGrassFalloffDistance: { value: grassFalloffDistance },
 			uGrassFalloffPower: { value: grassFalloffPower },
+			uColorVariation: { value: grassColorVariation },
 		},
 	})
 

@@ -19,6 +19,7 @@ uniform float uWindStrength;
 varying float vBladeT;
 varying vec2 vUv;
 varying vec3 vWorldPos;
+varying float vColorVariation;
 
 // ---- Hash-based 2D value noise for wind ----
 
@@ -74,6 +75,9 @@ void main() {
   worldPos.z += wind * 0.35;
 
   vWorldPos = worldPos.xyz;
+
+  // Per-instance color variation: independent hash from wind to avoid correlation
+  vColorVariation = hash21(instanceXZ * 7.391);
 
   gl_Position = projectionMatrix * modelViewMatrix * worldPos;
 }

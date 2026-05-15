@@ -495,6 +495,7 @@ const GRASS_LIVE_KEYS = new Set([
 	'grassTrailStrength',
 	'grassFalloffDistance',
 	'grassFalloffPower',
+	'grassColorVariation',
 ])
 
 const grassFolder = pane.addFolder({ title: 'Grass', expanded: false })
@@ -543,6 +544,12 @@ grassFolder.addBinding(config, 'grassOuterRadiusFactor', {
 })
 grassFolder.addBinding(config, 'grassColorBase', { label: 'color base' })
 grassFolder.addBinding(config, 'grassColorTip', { label: 'color tip' })
+grassFolder.addBinding(config, 'grassColorVariation', {
+	label: 'color variation',
+	min: 0.0,
+	max: 1.0,
+	step: 0.01,
+})
 grassFolder.addBinding(config, 'grassTrailStrength', {
 	label: 'trail strength',
 	min: 0.0,
@@ -593,6 +600,7 @@ grassFolder.on('change', (ev) => {
 		g.material.uniforms.uGrassFalloffDistance.value =
 			config.grassFalloffDistance
 		g.material.uniforms.uGrassFalloffPower.value = config.grassFalloffPower
+		g.material.uniforms.uColorVariation.value = config.grassColorVariation
 	}
 	// Structural params require a full geometry rebuild
 	if (!GRASS_LIVE_KEYS.has(ev.presetKey) && onGrassChange) {

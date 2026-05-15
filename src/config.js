@@ -89,12 +89,12 @@ export const config = {
 	grassWindStrength: 4.0,
 	grassSphereExclusion: 0.75,
 	grassOuterRadiusFactor: 1.5,
-	grassColorBase: '#5c1f00',
-	grassColorTip: '#411900',
+	grassColorBase: '#3b1313',
+	grassColorTip: '#702600',
 	grassTrailStrength: 4.0,
 	grassFalloffDistance: 50.0,
 	grassFalloffPower: 1.0,
-	// Debug
+	grassColorVariation: 0.55, // Debug
 	showHeightMap: false,
 
 	// Background Plane (reference image)

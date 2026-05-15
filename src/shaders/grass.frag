@@ -18,9 +18,13 @@ uniform float uTrailStrength;
 uniform float uGrassFalloffDistance;
 uniform float uGrassFalloffPower;
 
+// Per-instance chromatic variation
+uniform float uColorVariation;
+
 varying float vBladeT;
 varying vec2 vUv;
 varying vec3 vWorldPos;
+varying float vColorVariation;
 
 void main() {
 	// Vertical gradient from base to tip color
@@ -29,6 +33,12 @@ void main() {
 	// Ambient occlusion: darker at the base, full brightness at the tip
   float ao = vBladeT * 0.75 + 0.25;
   color *= ao;
+
+	// Per-instance chromatic variation: brightness ±uColorVariation, warm hue push on brighter blades
+  float vary = vColorVariation * 2.0 - 1.0; // remap [0,1] → [-1,1]
+  color *= 1.0 + vary * uColorVariation;
+  color.r += max(vary, 0.0) * uColorVariation * 0.04;
+  color.g += max(vary, 0.0) * uColorVariation * 0.015;
 
 	// Distance-based brightness falloff from sphere (XZ plane)
   float dist = length(vWorldPos.xz);
