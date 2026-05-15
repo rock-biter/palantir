@@ -5,7 +5,9 @@ import { getTerrainHeightMap, getTerrainHeightRange } from './terrain.js'
 import grassVert from './shaders/grass.vert'
 import grassFrag from './shaders/grass.frag'
 
-const grassTexture = new THREE.TextureLoader().load('/textures/grass/grass.png')
+const grassTexture = new THREE.TextureLoader().load(
+	'/textures/grass/grass-2.png',
+)
 grassTexture.wrapS = THREE.ClampToEdgeWrapping
 grassTexture.wrapT = THREE.ClampToEdgeWrapping
 

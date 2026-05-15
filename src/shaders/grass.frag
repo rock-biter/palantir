@@ -78,7 +78,7 @@ void main() {
   vec3 trailColor = pow(uTrailColorMid, vec3(2.2));
   trailColor = pow(trailColor, vec3(1.0 / 2.0));
 
-  color += trailColor * trail * distFactor * uTrailStrength * (1.0 + sssWeight * 10.5);
+  color += trailColor * trail * distFactor * uTrailStrength * (1.0 + sssWeight * 4.5);
 
   // Apply grayscale texture trama to the final blade color
   color *= grassGray;
