@@ -76,6 +76,9 @@ export const config = {
 	radialBlurColor: '#4e0600',
 	radialBlurColorDistance: 0.65,
 
+	// Debug
+	showHeightMap: false,
+
 	// Background Plane (reference image)
 	bgPlaneVisible: false,
 	bgPlaneScale: 20,

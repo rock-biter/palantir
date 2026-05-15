@@ -186,6 +186,11 @@ terrainFolder.addBinding(config, 'terrainTexOffsetY', {
 	max: 10.0,
 	step: 0.1,
 })
+terrainFolder
+	.addBinding(config, 'showHeightMap', { label: 'show heightmap' })
+	.on('change', () => {
+		if (heightMapQuad) heightMapQuad.visible = config.showHeightMap
+	})
 
 // --- Trail Light folder ---
 const trailLightFolder = pane.addFolder({
@@ -280,6 +285,12 @@ export function setRadialBlurMaterial(mat) {
 
 export function setOnTerrainChange(cb) {
 	onTerrainChange = cb
+}
+
+let heightMapQuad = null
+
+export function setHeightMapQuad(quad) {
+	heightMapQuad = quad
 }
 
 // --- Background Terrain folder ---
