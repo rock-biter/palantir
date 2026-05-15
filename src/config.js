@@ -72,7 +72,7 @@ export const config = {
 	reflectionIntensity: 2,
 
 	// Radial Blur
-	radialBlurSamples: 25,
+	radialBlurSamples: 18,
 	radialBlurReduce: 0.25,
 	radialBlurStrength: 2.5,
 	radialBlurColor: '#4e0600',
@@ -84,12 +84,12 @@ export const config = {
 	grassPatchThreshold: 0.45,
 	grassHeightMin: 0.8,
 	grassHeightMax: 5,
-	grassWidthMin: 0.35,
-	grassWidthMax: 0.7,
+	grassWidthMin: 0.45,
+	grassWidthMax: 0.85,
 	grassWindFrequency: 0.15,
 	grassWindSpeed: 0.5,
 	grassWindStrength: 5.75,
-	grassSphereExclusion: 0,
+	grassSphereExclusion: 0.8,
 	grassOuterRadiusFactor: 1.2,
 	grassColorBase: '#813700',
 	grassColorTip: '#b95724',
@@ -106,4 +106,11 @@ export const config = {
 	bgPlaneScale: 20,
 	bgPlaneY: 0,
 	bgPlaneZ: 0,
+
+	// Shadow Map
+	shadowMaxDist: 40.0,
+	shadowResolution: 256 * 2,
+	shadowStrength: 1.0,
+	shadowBias: 0.0,
+	shadowFalloff: 10.0,
 }

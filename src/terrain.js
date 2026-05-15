@@ -250,6 +250,11 @@ export function createTerrain() {
 			uChromaShift: { value: config.chromaShift },
 			uBrightnessStart: { value: config.terrainBrightnessStart },
 			uBrightnessMult: { value: config.terrainBrightnessMult },
+			uShadowCubeMap: { value: null },
+			uShadowMaxDist: { value: config.shadowMaxDist },
+			uShadowStrength: { value: config.shadowStrength },
+			uShadowBias: { value: config.shadowBias },
+			uShadowFalloff: { value: config.shadowFalloff },
 		},
 	})
 

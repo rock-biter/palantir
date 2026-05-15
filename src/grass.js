@@ -141,6 +141,11 @@ export function createGrass() {
 			uFbmColorMap: { value: fbmColorTexture },
 			uFbmColorStrength: { value: config.grassFbmColorStrength },
 			uFrayStrength: { value: config.grassFrayStrength },
+			uShadowCubeMap: { value: null },
+			uShadowMaxDist: { value: config.shadowMaxDist },
+			uShadowStrength: { value: config.shadowStrength },
+			uShadowBias: { value: config.shadowBias },
+			uShadowFalloff: { value: config.shadowFalloff },
 		},
 	})
 

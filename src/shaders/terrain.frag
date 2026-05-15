@@ -23,6 +23,12 @@ uniform float uChromaShift;
 uniform float uBrightnessStart;
 uniform float uBrightnessMult;
 
+uniform samplerCube uShadowCubeMap;
+uniform float uShadowMaxDist;
+uniform float uShadowStrength;
+uniform float uShadowBias;
+uniform float uShadowFalloff;
+
 varying vec2 vUv;
 varying vec3 vWorldPosition;
 varying vec3 vNormal;
@@ -139,9 +145,53 @@ void main() {
   vec3 toCenter = normalize(-vWorldPosition);
   float trailIntensity = max(dot(N, toCenter), 0.0);
 
+  // Omnidirectional shadow: attenuates the trail light where blocked
+  // Computed before trail addition so it multiplies only the light contribution
+  vec3 shadowDir = normalize(vWorldPosition);
+  float shadowActualDist = length(vWorldPosition);
+  float effectiveBias = max(uShadowBias, uShadowFalloff * 0.01);
+  float pcfScale = uShadowFalloff * 0.3;
+
+  // PCF 5-tap soft shadows: sample cube map in a small cone around shadowDir
+  const float pcfR = 0.04;
+  vec3 pcfUp = abs(shadowDir.y) < 0.99 ? vec3(0.0, 1.0, 0.0) : vec3(1.0, 0.0, 0.0);
+  vec3 pcfTanX = normalize(cross(pcfUp, shadowDir));
+  vec3 pcfTanY = cross(shadowDir, pcfTanX);
+
+  float shadowAcc = 0.0;
+  vec3 pcfDir; float pcfStored, pcfT, pcfU;
+
+  pcfDir = shadowDir;
+  pcfStored = texture(uShadowCubeMap, pcfDir).r * uShadowMaxDist;
+  pcfT = max(shadowActualDist - pcfStored - effectiveBias, 0.0);
+  pcfU = pcfT / pcfScale; shadowAcc += min(pcfU * exp(1.0 - pcfU), 1.0);
+
+  pcfDir = normalize(shadowDir + pcfTanX * pcfR);
+  pcfStored = texture(uShadowCubeMap, pcfDir).r * uShadowMaxDist;
+  pcfT = max(shadowActualDist - pcfStored - effectiveBias, 0.0);
+  pcfU = pcfT / pcfScale; shadowAcc += min(pcfU * exp(1.0 - pcfU), 1.0);
+
+  pcfDir = normalize(shadowDir - pcfTanX * pcfR);
+  pcfStored = texture(uShadowCubeMap, pcfDir).r * uShadowMaxDist;
+  pcfT = max(shadowActualDist - pcfStored - effectiveBias, 0.0);
+  pcfU = pcfT / pcfScale; shadowAcc += min(pcfU * exp(1.0 - pcfU), 1.0);
+
+  pcfDir = normalize(shadowDir + pcfTanY * pcfR);
+  pcfStored = texture(uShadowCubeMap, pcfDir).r * uShadowMaxDist;
+  pcfT = max(shadowActualDist - pcfStored - effectiveBias, 0.0);
+  pcfU = pcfT / pcfScale; shadowAcc += min(pcfU * exp(1.0 - pcfU), 1.0);
+
+  pcfDir = normalize(shadowDir - pcfTanY * pcfR);
+  pcfStored = texture(uShadowCubeMap, pcfDir).r * uShadowMaxDist;
+  pcfT = max(shadowActualDist - pcfStored - effectiveBias, 0.0);
+  pcfU = pcfT / pcfScale; shadowAcc += min(pcfU * exp(1.0 - pcfU), 1.0);
+
+  float shadowAmount = shadowAcc / 5.0;
+  float shadowFactor = 1.0 - shadowAmount * uShadowStrength;
+
   // Apply chromatic aberration per channel
   vec3 trailRGB = vec3(trailR, trailG, trailB);
-  color += trailColor * trailRGB * trailIntensity * distFactor * 6.;
+  color += trailColor * trailRGB * trailIntensity * distFactor * 6. * shadowFactor;
 
   // Radial brightness attenuation: fades from 1.0 at center to uBrightnessMult at edges
   float bDist = length(vUv - 0.5) * 2.0;
