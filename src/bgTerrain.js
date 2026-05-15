@@ -201,6 +201,8 @@ export function createBgTerrain() {
 			uTrailFalloffCurve: { value: 1.0 },
 			uTrailBlur: { value: 0.0 },
 			uChromaShift: { value: 0.0 },
+			uBrightnessStart: { value: 0.0 },
+			uBrightnessMult: { value: 1.0 },
 		},
 	})
 

@@ -248,6 +248,8 @@ export function createTerrain() {
 			uTrailFalloffCurve: { value: config.trailFalloffCurve },
 			uTrailBlur: { value: config.trailBlur },
 			uChromaShift: { value: config.chromaShift },
+			uBrightnessStart: { value: config.terrainBrightnessStart },
+			uBrightnessMult: { value: config.terrainBrightnessMult },
 		},
 	})
 

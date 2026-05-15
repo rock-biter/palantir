@@ -31,6 +31,8 @@ export const config = {
 	terrainFalloffEnd: 0.9,
 	terrainFalloffNoiseScale: 3.0,
 	terrainFalloffNoiseStrength: 0.27,
+	terrainBrightnessStart: 0.12,
+	terrainBrightnessMult: 0.15,
 	terrainNoiseOffsetX: 27.5,
 	terrainNoiseOffsetY: -2.7,
 	terrainTexScale: 10.0,

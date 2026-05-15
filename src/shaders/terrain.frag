@@ -20,6 +20,8 @@ uniform float uTrailMaxDist;
 uniform float uTrailFalloffCurve;
 uniform float uTrailBlur;
 uniform float uChromaShift;
+uniform float uBrightnessStart;
+uniform float uBrightnessMult;
 
 varying vec2 vUv;
 varying vec3 vWorldPosition;
@@ -140,6 +142,11 @@ void main() {
   // Apply chromatic aberration per channel
   vec3 trailRGB = vec3(trailR, trailG, trailB);
   color += trailColor * trailRGB * trailIntensity * distFactor * 6.;
+
+  // Radial brightness attenuation: fades from 1.0 at center to uBrightnessMult at edges
+  float bDist = length(vUv - 0.5) * 2.0;
+  float bAtten = 1.0 - smoothstep(uBrightnessStart, 1.0, bDist);
+  color *= mix(uBrightnessMult, 1.0, bAtten);
 
   gl_FragColor = vec4(color, alpha);
 

@@ -476,6 +476,33 @@ trailFolder.on('change', () => {
 	sphereMaterial.uniforms.uTrailColorEdge.value.set(config.trailColorEdge)
 })
 
+terrainFolder
+	.addBinding(config, 'terrainBrightnessStart', {
+		label: 'brightness falloff',
+		min: 0.0,
+		max: 1.0,
+		step: 0.01,
+	})
+	.on('change', () => {
+		const terrain = getTerrainMesh()
+		if (terrain)
+			terrain.material.uniforms.uBrightnessStart.value =
+				config.terrainBrightnessStart
+	})
+terrainFolder
+	.addBinding(config, 'terrainBrightnessMult', {
+		label: 'brightness mult',
+		min: 0.0,
+		max: 2.0,
+		step: 0.01,
+	})
+	.on('change', () => {
+		const terrain = getTerrainMesh()
+		if (terrain)
+			terrain.material.uniforms.uBrightnessMult.value =
+				config.terrainBrightnessMult
+	})
+
 // --- Rebuild terrain on terrain param change ---
 terrainFolder.on('change', () => {
 	if (onTerrainChange) onTerrainChange()
