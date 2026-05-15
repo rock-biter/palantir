@@ -145,8 +145,6 @@ export class LinearBlur {
 	render(renderer, inputTexture, maskTexture) {
 		const bMat = this._blurMat
 		bMat.uniforms.uMaskTexture.value = maskTexture
-		bMat.uniforms.uSamples.value = this.numSamples
-		bMat.uniforms.uStepSize.value = 1.0 // resolution halving handles scale
 
 		// ── Downsample chain ─────────────────────────────────────────────────
 		for (let i = 0; i < this.numLevels; i++) {
@@ -154,6 +152,8 @@ export class LinearBlur {
 			bMat.uniforms.uTexture.value =
 				i === 0 ? inputTexture : this._downRTs[i - 1].texture
 			bMat.uniforms.uTexelSize.value.set(1 / rt.width, 1 / rt.height)
+			bMat.uniforms.uSamples.value = Math.max(1, this.numSamples - i)
+			bMat.uniforms.uStepSize.value = i * 0.5
 			// Colour-distance threshold rises with level so deeper (blurrier)
 			// levels can still capture slightly-shifted glow colours.
 			bMat.uniforms.uColorDistance.value =

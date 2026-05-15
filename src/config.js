@@ -70,14 +70,14 @@ export const config = {
 	reflectionIntensity: 2,
 
 	// Linear Blur
-	linearBlurStrength: 2.87,
+	linearBlurStrength: 3.2,
 	linearBlurColor: '#4e0600',
-	linearBlurColorDistance: 0.65,
-	linearBlurColorDistanceIncrement: 0.08,
+	linearBlurColorDistance: 0.86,
+	linearBlurColorDistanceIncrement: 0.1,
 	linearBlurScale: 0.25,
-	linearBlurLevels: 4,
-	linearBlurSamples: 10,
-	linearBlurUpsampleBlend: 0.85,
+	linearBlurLevels: 6,
+	linearBlurSamples: 8,
+	linearBlurUpsampleBlend: 1.0,
 
 	// Background Plane (reference image)
 	bgPlaneVisible: false,

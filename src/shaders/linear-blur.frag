@@ -46,8 +46,7 @@ void main() {
     vec2 step = dir * (float(i) * uStepSize) * uTexelSize;
 
     sum += maskedSample(vUv + step);  // toward centre
-    sum += maskedSample(vUv - step);  // away from centre
-    count += 2.0;
+    count += 1.0;
   }
 
   gl_FragColor = sum / count;
