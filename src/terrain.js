@@ -87,6 +87,7 @@ function fbm(x, y, octaves, frequency, lacunarity, gain) {
 // --- Terrain mesh ---
 
 let terrainMesh = null
+let terrainHeightMap = null
 
 export function createTerrain() {
 	const {
@@ -165,6 +166,54 @@ export function createTerrain() {
 	geometry.attributes.position.needsUpdate = true
 	geometry.attributes.normal.needsUpdate = true
 
+	// --- Build heightmap texture (RGBA float: r=x, g=y, b=z, a=1) ---
+	{
+		const size = terrainSegments + 1
+		const data = new Float32Array(size * size * 4)
+
+		// x and z are symmetric: [-terrainSize/2, +terrainSize/2] → [0, 1]
+		const half = terrainSize / 2
+
+		// Find min/max Y to normalize height to [0, 1]
+		let minH = Infinity
+		let maxH = -Infinity
+		for (let i = 0; i < positions.length; i += 3) {
+			const h = positions[i + 1]
+			if (h < minH) minH = h
+			if (h > maxH) maxH = h
+		}
+		const rangeH = maxH - minH || 1
+
+		// PlaneGeometry vertices are row-major: index = row * size + col
+		// DataTexture row 0 = bottom of texture; PlaneGeometry row 0 = far-Z edge.
+		// Store directly 1:1 (row 0 of vertices → row 0 of texture data).
+		for (let row = 0; row < size; row++) {
+			for (let col = 0; col < size; col++) {
+				const vIdx = row * size + col
+				const px = positions[vIdx * 3 + 0]
+				const py = positions[vIdx * 3 + 1]
+				const pz = positions[vIdx * 3 + 2]
+				const tIdx = vIdx * 4
+				data[tIdx + 0] = (px + half) / terrainSize // r = x [0,1]
+				data[tIdx + 1] = (py - minH) / rangeH // g = y [0,1]
+				data[tIdx + 2] = (pz + half) / terrainSize // b = z [0,1]
+				data[tIdx + 3] = 1.0 // a = 1
+			}
+		}
+
+		if (terrainHeightMap) terrainHeightMap.dispose()
+		terrainHeightMap = new THREE.DataTexture(
+			data,
+			size,
+			size,
+			THREE.RGBAFormat,
+			THREE.FloatType,
+		)
+		terrainHeightMap.magFilter = THREE.LinearFilter
+		terrainHeightMap.minFilter = THREE.LinearFilter
+		terrainHeightMap.needsUpdate = true
+	}
+
 	const material = new THREE.ShaderMaterial({
 		vertexShader: terrainVert,
 		fragmentShader: terrainFrag,
@@ -214,4 +263,8 @@ export function createTerrain() {
 
 export function getTerrainMesh() {
 	return terrainMesh
+}
+
+export function getTerrainHeightMap() {
+	return terrainHeightMap
 }
