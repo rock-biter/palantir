@@ -15,6 +15,7 @@ uniform float uTime;
 uniform float uWindFrequency;
 uniform float uWindSpeed;
 uniform float uWindStrength;
+uniform float uGrassHeightMax;
 
 varying float vBladeT;
 varying vec2 vUv;
@@ -67,8 +68,11 @@ void main() {
 	// Lift blade base to terrain height
   worldPos.y += terrainH;
 
-	// Wind: quadratic envelope (zero at base, full effect at tip)
-  float windT = vBladeT * vBladeT;
+	// Wind: quadratic envelope (zero at base, full effect at tip),
+	// attenuated by normalized blade height so shorter blades oscillate less
+  float bladeHeight = length(instanceMatrix[1].xyz);
+  float bladeHeightNorm = bladeHeight / uGrassHeightMax;
+  float windT = vBladeT * vBladeT * bladeHeightNorm;
   vec2 windUv = instanceXZ * uWindFrequency + vec2(uTime * uWindSpeed, uTime * uWindSpeed * 0.73);
   float wind = (windFbm(windUv) * 2.0 - 1.0) * uWindStrength * windT;
   worldPos.x += wind;

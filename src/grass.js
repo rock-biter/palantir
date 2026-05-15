@@ -113,6 +113,7 @@ export function createGrass() {
 			uWindFrequency: { value: grassWindFrequency },
 			uWindSpeed: { value: grassWindSpeed },
 			uWindStrength: { value: grassWindStrength },
+			uGrassHeightMax: { value: grassHeightMax },
 			uColorBase: { value: new THREE.Color(grassColorBase) },
 			uColorTip: { value: new THREE.Color(grassColorTip) },
 			uTrailMap: { value: null },
