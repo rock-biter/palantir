@@ -140,6 +140,7 @@ export function createGrass() {
 			uGrassTexture: { value: grassTexture },
 			uFbmColorMap: { value: fbmColorTexture },
 			uFbmColorStrength: { value: config.grassFbmColorStrength },
+			uFrayStrength: { value: config.grassFrayStrength },
 		},
 	})
 

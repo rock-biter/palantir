@@ -84,8 +84,8 @@ export const config = {
 	grassPatchThreshold: 0.45,
 	grassHeightMin: 0.8,
 	grassHeightMax: 5,
-	grassWidthMin: 0.15,
-	grassWidthMax: 0.4,
+	grassWidthMin: 0.35,
+	grassWidthMax: 0.7,
 	grassWindFrequency: 0.15,
 	grassWindSpeed: 0.5,
 	grassWindStrength: 5.75,
@@ -98,6 +98,7 @@ export const config = {
 	grassFalloffPower: 1.3,
 	grassColorVariation: 0.55, // Debug
 	grassFbmColorStrength: 0.5,
+	grassFrayStrength: 0.5,
 	showHeightMap: false,
 
 	// Background Plane (reference image)

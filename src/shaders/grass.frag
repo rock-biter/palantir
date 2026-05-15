@@ -8,6 +8,7 @@ uniform vec3 uColorTip;
 uniform sampler2D uGrassTexture;
 uniform sampler2D uFbmColorMap;
 uniform float uFbmColorStrength;
+uniform float uFrayStrength;
 uniform float uTerrainSize;
 
 // Trail projection
@@ -28,6 +29,7 @@ uniform float uColorVariation;
 varying float vBladeT;
 varying vec2 vUv;
 varying vec3 vWorldPos;
+varying vec3 vPivotWorldPos;
 varying float vColorVariation;
 
 void main() {
@@ -37,11 +39,19 @@ void main() {
     discard;
   float grassGray = dot(grassTex.rgb, vec3(0.299, 0.587, 0.114));
 
+  // Remap U for two side-by-side blades: each half → [0, 1]
+  float bladeLocalU = fract(vUv.x * 2.0);
+
+  // Frayed edge: stochastic discard near blade edges using fbm noise
+  float distFromEdge = min(bladeLocalU, 1.0 - bladeLocalU) * 2.0; // 0=edge, 1=center
+  vec2 frayUV = vec2(bladeLocalU * 0.5 + vPivotWorldPos.x * 0.18, vUv.y * 5.0 + vPivotWorldPos.z * 0.18);
+  float frayNoise = texture2D(uFbmColorMap, frayUV).r;
+  if(frayNoise < (1.0 - distFromEdge) * uFrayStrength * 3.)
+    discard;
+
   // High-contrast version for SSS approximation: crush darks (veins), boost lights (thin blade areas)
   float sssContrast = 1.0 - pow(clamp(grassGray * 2.2 - 0.6, 0.0, 1.0), 10.0);
-  // Edge factor: texture has two blades side by side, remap each half to [0,1] via fract(uv.x * 2)
-  // so both blade centers map to 0.5 → edge factor is 0 at center, 1 at edges of each blade
-  float bladeLocalU = fract(vUv.x * 2.0);
+  // bladeLocalU already computed above
   float sssEdge = pow(abs(bladeLocalU - 0.5) * 2.0, 0.4);
   float sssWeight = sssContrast * sssEdge;
 
@@ -91,7 +101,7 @@ void main() {
   // FBM color variation: sample world-space color map and tint the blade
   // vec2 colorMapUV = vWorldPos.xz / uTerrainSize + 0.5;
   vec3 fbmTint = texture2D(uFbmColorMap, vUv * vec2(1., 0.5)).rgb;
-  color = mix(color, color * fbmTint * 2.0, uFbmColorStrength);
+  color = mix(color, color * vec3(0.2) * 2.0, uFbmColorStrength);
 
   gl_FragColor = vec4(color, 1.0);
 }

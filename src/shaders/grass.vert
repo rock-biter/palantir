@@ -21,6 +21,7 @@ varying float vBladeT;
 varying vec2 vUv;
 varying vec3 vWorldPos;
 varying float vColorVariation;
+varying vec3 vPivotWorldPos;
 
 // ---- Hash-based 2D value noise for wind ----
 
@@ -63,6 +64,7 @@ void main() {
 	// Apply per-instance transform (XZ translation, Y rotation, XZ/Y scale)
 	// After this, worldPos.y = scaleY * position.y  (instance translation.y = 0)
   vec4 worldPos = instanceMatrix * vec4(position, 1.0);
+  vPivotWorldPos = (instanceMatrix * vec4(vec3(0.0), 1.0)).xyz;
 
 	// Lift blade base to terrain height
   worldPos.y += terrainH;
