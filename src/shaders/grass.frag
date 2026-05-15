@@ -36,8 +36,10 @@ void main() {
 
   // High-contrast version for SSS approximation: crush darks (veins), boost lights (thin blade areas)
   float sssContrast = 1.0 - pow(clamp(grassGray * 2.2 - 0.6, 0.0, 1.0), 10.0);
-  // Edge factor: stronger at horizontal blade edges, fades to zero at center
-  float sssEdge = pow(abs(vUv.x - 0.5) * 2.0, 0.4);
+  // Edge factor: texture has two blades side by side, remap each half to [0,1] via fract(uv.x * 2)
+  // so both blade centers map to 0.5 → edge factor is 0 at center, 1 at edges of each blade
+  float bladeLocalU = fract(vUv.x * 2.0);
+  float sssEdge = pow(abs(bladeLocalU - 0.5) * 2.0, 0.4);
   float sssWeight = sssContrast * sssEdge;
 
 	// Vertical gradient from base to tip color
